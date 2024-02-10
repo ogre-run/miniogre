@@ -2,18 +2,18 @@ DOCKERFILE = """
 ENV TZ=Europe/Paris
 WORKDIR /opt/{}
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-COPY ogre_dir/bashrc /etc/bash.bashrc·
-RUN chmod a+rwx /etc/bash.bashrc
 COPY . .
+RUN cp ./ogre_dir/bashrc /etc/bash.bashrc
+RUN chmod a+rwx /etc/bash.bashrc
 RUN pip install jupyterlab
 """
 
 DOCKERFILE_DRY = """
 WORKDIR /opt/{}
 # RUN apt update && apt install -y python3-dev python3-pip
-COPY ogre_dir/bashrc /etc/bash.bashrc 
+COPY {}/ogre_dir/bashrc /etc/bash.bashrc 
 RUN chmod a+rwx /etc/bash.bashrc
-COPY . .
+COPY {} .
 RUN pip install jupyterlab
 """
 
