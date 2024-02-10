@@ -8,8 +8,15 @@ from dotenv import load_dotenv
 client = OpenAI()
 
 def list_files(project_path):
-    # List all files in current directory
-    files = os.listdir(project_path)
+    # List all files in current directory and subdirectories
+    files = []
+    for root, dirs, filenames in os.walk(project_path):
+        if '.git' in dirs:
+            dirs.remove('.git')
+        if '__pycache__' in dirs:
+            dirs.remove('__pycache__')
+        for filename in filenames:
+            files.append(os.path.join(root, filename))
     return files
 
 # Get file extensions
@@ -38,15 +45,15 @@ def determine_most_ext(counts):
 
 def find_readme(project_path):
     files = list_files(project_path)
-    readme_files = [os.path.join(project_path, f) for f in files if f.lower().startswith('readme')]
+    readme_files = [f for f in files if os.path.basename(f).lower().startswith('readme')]
 
     if readme_files:
         return readme_files[0]
     else:
         return None
     
-def read_readme(path_to_readme):
-    with open(path_to_readme, 'r') as f:
+def read_file_contents(path_to_file):
+    with open(path_to_file, 'r') as f:
         contents = f.read()
     return contents
 
@@ -57,13 +64,34 @@ def append_files_with_ext(project_path, ext, limit, output_file):
     if limit < len(matching):
         matching = matching[:limit]
         
+    contents = ''
     with open(output_file, 'a') as outfile:
         for filename in matching:
             with open(os.path.join(project_path, filename), 'r') as readfile:
-                outfile.write(readfile.read())
+                contents += readfile.read()
 
-    return outfile
-                
+    return contents
+
+def generate_context_file(readme_text, source_text, output_file):
+    """
+    Generates the context file by appending the README and the source code text. 
+    The content of this file will be used to extract the dependencies.
+    """
+    out_text = readme_text + source_text
+    
+    with open(output_file, 'w') as out:
+        out.write(out_text)
+    
+    with open(output_file, 'r') as f:
+        return f.read()
+
+
+
+def read_context(path_to_context_file):
+    with open(path_to_context_file, 'r') as f:
+        contents = f.read()
+    return contents
+
 def extract_requirements(model, contents, prompt):
     completion = client.chat.completions.create(
                   model=model,
