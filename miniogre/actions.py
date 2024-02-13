@@ -1,8 +1,14 @@
 import os
+import emoji
 import platform
 import subprocess
+import xmlrpc.client
+import pkg_resources
 from openai import OpenAI
 from dotenv import load_dotenv
+from pyfiglet import Figlet
+from rich import print as rprint
+from .constants import *
 
 
 client = OpenAI()
@@ -34,14 +40,10 @@ def count_extensions(extensions):
             counts[ext] = 1
     return counts
 
-# Get main extension
-def determine_most_ext(counts):
-    main_lang = max(counts, key=counts.get)
-    if main_lang in ['.md', '']:
-        for ext in ['.md', '']:
-            del counts[ext]
-        main_lang = max(counts, key=counts.get)
-    return main_lang
+# Get most prevalent extension for code files
+def determine_most_ext(counts):    
+    return '.py'
+
 
 def find_readme(project_path):
     files = list_files(project_path)
@@ -51,11 +53,49 @@ def find_readme(project_path):
         return readme_files[0]
     else:
         return None
-    
+
 def read_file_contents(path_to_file):
-    with open(path_to_file, 'r') as f:
-        contents = f.read()
-    return contents
+    if os.path.exists(path_to_file):
+        with open(path_to_file, 'r') as f:
+            contents = f.read()
+        return contents
+    else:
+        return None
+
+import ast
+
+def extract_external_imports(code):
+    tree = ast.parse(code)
+    external_imports = []
+    
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for name in node.names:
+                if not name.name.startswith('.'):
+                    external_imports.append(name.name)
+        elif isinstance(node, ast.ImportFrom):
+            if not node.module.startswith('.'):
+                external_imports.append(node.module)
+    
+    return external_imports
+
+def extract_requirements_from_code(project_path, ext):
+    
+    files = list_files(project_path)
+    matching = [f for f in files if os.path.splitext(f)[1] == ext]
+
+    external_imports = []
+    for filename in matching:
+        with open(os.path.join(project_path, filename), 'r') as readfile:
+            content = readfile.read()
+            try:
+                external_imports.append(extract_external_imports(content))
+            except Exception:
+                print("External imports extraction failed for file {}: {}".format(filename, Exception))
+    external_imports = [imp for sublist in external_imports for imp in sublist]
+    external_imports = list(set(external_imports))
+
+    return external_imports
 
 def append_files_with_ext(project_path, ext, limit, output_file):
     files = list_files(project_path)
@@ -85,8 +125,6 @@ def generate_context_file(readme_text, source_text, output_file):
     with open(output_file, 'r') as f:
         return f.read()
 
-
-
 def read_context(path_to_context_file):
     with open(path_to_context_file, 'r') as f:
         contents = f.read()
@@ -108,6 +146,7 @@ def save_requirements(requirements, ogre_dir_path):
     requirements_fullpath = os.path.join(ogre_dir_path, 'requirements.txt')
     with open(requirements_fullpath, 'w') as f:
         f.write(requirements)
+        
     return requirements_fullpath 
 
 def build_docker_image(dockerfile, image_name, ogre_dir_path):
@@ -158,4 +197,15 @@ def spin_up_container(image_name, project_path):
 
     return out
     
+def display_figlet():
+    # Display Ogre figlet
+    f = Figlet(font="slant")
+    # Get version
+    # ogre_version = pkg_resources.get_distribution('miniogre').version
+    rprint("[cyan] {} [/cyan]".format(f.renderText("miniogre")))
+    rprint("[blue bold]miniogre - {}[/blue bold]".format("https://ogre.run"))
+    print("\n")
 
+def display_emoji():
+    print(emoji.emojize('Starting miniogre :ogre: ...'))
+    print("\n")

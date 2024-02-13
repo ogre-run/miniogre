@@ -85,3 +85,46 @@ BASHRC = """
   # Aliases
   alias python="python3"
   """
+
+FILE_EXTENSIONS = {
+    'python': ['.py'],
+    'javascript': ['.js'],
+    'c++': ['.cpp', '.cxx', '.cc', '.c', '.hpp', '.hxx', '.hh', '.h'],
+    'java': ['.java'],
+    'c#': ['.cs'],
+    'ruby': ['.rb'],
+    'php': ['.php'],
+    'go': ['.go'],
+    'rust': ['.rs'],
+    'swift': ['.swift'],
+    'kotlin': ['.kt'],
+    'scala': ['.scala'],
+    'clojure': ['.clj'],
+    'haskell': ['.hs'],
+    'erlang': ['.erl'],
+    'elixir': ['.ex', '.exs'],
+    'lua': ['.lua'],
+    'perl': ['.pl'],
+    'r': ['.r'],
+    'julia': ['.jl'],
+    'dart': ['.dart'],
+    'typescript': ['.ts'],
+    'coffeescript': ['.coffee'],
+    'ocaml': ['.ml', '.mli'],
+    'f#': ['.fs', '.fsi', '.fsx'],
+    'scheme': ['.scm', '.ss'],
+    'common lisp': ['.lisp', '.lsp'],
+    'racket': ['.rkt'],
+    'nim': ['.nim'],
+    'crystal': ['.cr'],
+    'groovy': ['.groovy'],
+    'd': ['.d'],
+    'fortran': ['.f', '.f90', '.f95'],
+    'cobol': ['.cbl', '.cob', '.cpy'],
+    'jupyter': ['.ipynb']
+}
+
+ALL_EXTENSIONS = ['.py', '.js', '.cpp', '.cxx', '.cc', '.c', '.hpp', '.hxx', '.hh', '.h', '.java', '.cs', '.rb', '.php', '.go', '.rs', '.swift', '.kt', '.scala', '.clj', '.hs', '.erl', '.ex', '.exs', '.lua', '.pl', '.r', '.jl', '.dart', '.ts', '.coffee', '.ml', '.mli', '.fs', '.fsi', '.fsx', '.scm', '.ss', '.lisp', '.lsp', '.rkt', '.nim', '.cr', '.groovy', '.d', '.f', '.f90', '.f95', '.cbl', '.cob', '.cpy', '.ipynb']
+
+
+
