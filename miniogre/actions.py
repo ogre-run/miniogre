@@ -5,7 +5,6 @@ import subprocess
 import xmlrpc.client
 import pkg_resources
 from openai import OpenAI
-from dotenv import load_dotenv
 from pyfiglet import Figlet
 from rich import print as rprint
 from .constants import *
@@ -176,9 +175,9 @@ def spin_up_container(image_name, project_path):
     
     platform_name = "linux/{}".format(platform.machine())
     project_name = image_name
-    image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
     container_name = "miniogre-{}".format(image_name.lower())
-
+    image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
+    
     print("Build docker image...")
     print("platform = {}".format(platform_name)) 
     print("image name = {}".format(image_name))
@@ -209,3 +208,32 @@ def display_figlet():
 def display_emoji():
     print(emoji.emojize('Starting miniogre :ogre: ...'))
     print("\n")
+
+def create_virtualenv(requirements, python_version):
+  
+    env_name = 'miniogre-env'
+
+    venv_cmd = "python -m venv {}".format(env_name)
+
+    p = subprocess.Popen(venv_cmd, stdout=subprocess.PIPE, shell=True)
+    (out, err) = p.communicate()
+    p_status = p.wait()
+
+    venv_activate_cmd = 'source ./{}/bin/activate'.format(env_name)
+    p = subprocess.Popen(venv_activate_cmd, stdout=subprocess.PIPE, shell=True)
+    (out, err) = p.communicate()
+    p_status = p.wait()
+
+    pip_cmd = './{}/bin/pip'.format(env_name)
+    with open(requirements) as f:
+        requirements_list = []
+        for line in f:
+            requirements_list.append(line.strip('\n'))
+
+        pip_cmd = 'pip' 
+        for req in requirements_content:
+            print(req)
+            input()
+            subprocess.call([pip_cmd, 'install', req.strip()])
+
+

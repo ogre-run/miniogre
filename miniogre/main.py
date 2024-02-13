@@ -50,7 +50,7 @@ def requirements(model: str = 'gpt-3.5-turbo',
 
 @app.command()
 def build(model: str = os.getenv('OPENAI_MODEL'), 
-        baseimage: str = os.getenv('OGRE_BASEIMAGE'),
+        baseimage: str = 'auto',
         dry: bool = False,
         limit_source_files: int = 5):
     """
@@ -58,6 +58,9 @@ def build(model: str = os.getenv('OPENAI_MODEL'),
     """
     display_figlet()
     display_emoji()
+
+    if baseimage == 'auto':
+        baseimage = config_baseimage()
     
     project_path = os.getcwd()
     prompt = os.getenv('OPENAI_SECRET_PROMPT')
@@ -85,13 +88,16 @@ def build(model: str = os.getenv('OPENAI_MODEL'),
 
 @app.command()
 def run(model: str = os.getenv('OPENAI_MODEL'), 
-        baseimage: str = os.getenv('OGRE_BASEIMAGE'),
+        baseimage: str = 'auto',
         dry: bool = False):
     """
     Run miniogre
     """
     display_figlet()
     display_emoji()
+
+    if baseimage == 'auto':
+        baseimage = config_baseimage()
 
     project_path = os.getcwd()
     prompt = os.getenv('OPENAI_SECRET_PROMPT')
@@ -107,11 +113,12 @@ def run(model: str = os.getenv('OPENAI_MODEL'),
     ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv('OGRE_DIR')))
     pre_requirements = extract_requirements_from_code(project_path, most_ext)
     requirements = extract_requirements(model, readme_contents, prompt)
-    save_requirements(requirements, ogre_dir_path)
-    config_bashrc(project_path, ogre_dir_path, None, None, None)
-    config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
-    build_docker_image(os.path.join(ogre_dir_path, "Dockerfile"), project_name, ogre_dir_path)
-    spin_up_container(project_name, project_path)
+    requirements_fullpath = save_requirements(requirements, ogre_dir_path)
+    create_virtualenv(requirements, "3.9")
+    #config_bashrc(project_path, ogre_dir_path, None, None, None)
+    #config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
+    #build_docker_image(os.path.join(ogre_dir_path, "Dockerfile"), project_name, ogre_dir_path)
+    #spin_up_container(project_name, project_path)
 
 
 if __name__ == '__main__':

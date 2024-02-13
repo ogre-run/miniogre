@@ -1,5 +1,10 @@
 import os
+import platform
+from dotenv import load_dotenv
 from .constants import *
+
+
+load_dotenv()
 
 def config_ogre_dir(ogre_dir):
     """
@@ -113,3 +118,12 @@ def config_dockerfile(project_dir, project_name, ogre_dir,
             f.close()
 
     return os.path.isfile("{}/Dockerfile".format(ogre_dir))
+
+
+def config_baseimage():
+
+    platform_machine = "{}".format(platform.machine())
+    baseimage = (os.getenv("OGRE_BASEIMAGE")).format(platform_machine)
+
+    return baseimage
+    
