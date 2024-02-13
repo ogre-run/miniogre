@@ -141,6 +141,17 @@ def extract_requirements(model, contents, prompt):
     
     return requirements
 
+def extract_requirements_groq(contents, prompt):
+    print("> groq")
+    with Completion() as completion:
+        full_prompt = prompt + " " + contents
+        response, id, stats = completion.send_prompt("llama2-70b-4096", user_prompt=full_prompt)
+        if response != "":
+            print(f"\nPrompt: {prompt}\n")
+            print(f"Request ID: {id}")
+            print(f"Output:\n {response}\n")
+            print(f"Stats:\n {stats}\n")
+
 def save_requirements(requirements, ogre_dir_path):
     requirements_fullpath = os.path.join(ogre_dir_path, 'requirements.txt')
     with open(requirements_fullpath, 'w') as f:
@@ -207,31 +218,36 @@ def display_figlet():
 
 def display_emoji():
     print(emoji.emojize('Starting miniogre :ogre: ...'))
-    print("\n")
+
+def display_end():
+    print(emoji.emojize('Done :rocket:'))
 
 def create_virtualenv(requirements, python_version):
   
     env_name = 'miniogre-env'
 
     venv_cmd = "python -m venv {}".format(env_name)
+    # venv_activate_cmd = 'source {}/bin/activate'.format(env_name) 
 
+    #os.popen(venv_cmd)
+    #os.popen(venv_activate_cmd)
     p = subprocess.Popen(venv_cmd, stdout=subprocess.PIPE, shell=True)
     (out, err) = p.communicate()
     p_status = p.wait()
 
-    venv_activate_cmd = 'source ./{}/bin/activate'.format(env_name)
+    venv_activate_cmd = 'source {}/bin/activate'.format(env_name)
     p = subprocess.Popen(venv_activate_cmd, stdout=subprocess.PIPE, shell=True)
     (out, err) = p.communicate()
     p_status = p.wait()
 
-    pip_cmd = './{}/bin/pip'.format(env_name)
+    pip_cmd = '{}/bin/pip'.format(env_name)
     with open(requirements) as f:
         requirements_list = []
         for line in f:
             requirements_list.append(line.strip('\n'))
 
         pip_cmd = 'pip' 
-        for req in requirements_content:
+        for req in requirements_list:
             print(req)
             input()
             subprocess.call([pip_cmd, 'install', req.strip()])

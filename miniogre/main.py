@@ -2,8 +2,8 @@ import os
 import typer
 from openai import OpenAI
 from dotenv import load_dotenv
-from miniogre.actions import *
-from miniogre.config import *
+from .actions import *
+from .config import *
 
 
 app = typer.Typer()
@@ -30,7 +30,6 @@ def requirements(model: str = 'gpt-3.5-turbo',
     print(counts)
     most_ext = determine_most_ext(counts)
     print(most_ext)
-    input()
     readme_path = find_readme(project_path)
     readme_contents = read_file_contents(readme_path)
     #source_contents = append_files_with_ext(project_path, most_ext, limit_source_files, 
@@ -40,6 +39,8 @@ def requirements(model: str = 'gpt-3.5-turbo',
     #                                         "{}/context_file.txt".format(ogre_dir_path))
     requirements = extract_requirements(model, readme_contents, prompt)
     
+    print(requirements)
+
     requirements_fullpath = save_requirements(requirements, ogre_dir_path)
 
     # print("> list of requirements: \n")
@@ -114,12 +115,13 @@ def run(model: str = os.getenv('OPENAI_MODEL'),
     pre_requirements = extract_requirements_from_code(project_path, most_ext)
     requirements = extract_requirements(model, readme_contents, prompt)
     requirements_fullpath = save_requirements(requirements, ogre_dir_path)
-    create_virtualenv(requirements, "3.9")
-    #config_bashrc(project_path, ogre_dir_path, None, None, None)
-    #config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
-    #build_docker_image(os.path.join(ogre_dir_path, "Dockerfile"), project_name, ogre_dir_path)
-    #spin_up_container(project_name, project_path)
+    #create_virtualenv(requirements_fullpath, "3.9")
+    config_bashrc(project_path, ogre_dir_path, None, None, None)
+    config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
+    build_docker_image(os.path.join(ogre_dir_path, "Dockerfile"), project_name, ogre_dir_path)
+    spin_up_container(project_name, project_path)
 
+    display_end()
 
 if __name__ == '__main__':
     app()
