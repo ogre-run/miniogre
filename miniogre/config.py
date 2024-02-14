@@ -31,8 +31,9 @@ def _run_welcome(project_path, product, version, ogre_dir, date):
 
     BOILERPLATE = """
         echo REPOSITORY = {} 
-        echo COMMIT = {}echo COMMIT_AUTHOR = {} 
-        """.format(product, version, date, repo[:-1], commit, author)
+        echo COMMIT = {}
+        echo COMMIT_AUTHOR = {} 
+        """.format(repo[:-1], commit, author)
 
     with open("{}/bashrc".format(ogre_dir), "a") as f:
         f.write(BOILERPLATE)

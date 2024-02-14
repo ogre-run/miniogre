@@ -177,7 +177,7 @@ def build_docker_image(dockerfile, image_name, ogre_dir_path):
     platform_name = "linux/{}".format(platform.machine())
     image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
 
-    print("Build docker image...")
+    print("Building Docker image...")
     print("platform = {}".format(platform_name)) 
     print("image name = {}".format(image_name))
     
@@ -201,7 +201,7 @@ def spin_up_container(image_name, project_path, port):
     container_name = "miniogre-{}".format(image_name.lower())
     image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
     
-    print("Build docker image...")
+    print("Spinning up container...")
     print("platform = {}".format(platform_name)) 
     print("image name = {}".format(image_name))
     
@@ -217,7 +217,7 @@ def spin_up_container(image_name, project_path, port):
     #p = subprocess.Popen(spin_up_cmd, stdout=subprocess.PIPE, shell=True)
     #(out, err) = p.communicate()
     #p_status = p.wait()
-    
+
     return 0
     
 def display_figlet():
