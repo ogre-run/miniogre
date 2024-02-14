@@ -141,6 +141,18 @@ def extract_requirements(model, contents, prompt):
     
     return requirements
 
+def rewrite_readme(model, contents, prompt):
+    completion = client.chat.completions.create(
+                  model=model,
+                  messages=[
+                      {"role": "system", "content": prompt},
+                      {"role": "user", "content": contents}
+                  ]
+              )
+    new_readme = completion.choices[0].message.content
+    
+    return new_readme
+
 def extract_requirements_groq(contents, prompt):
     print("> groq")
     with Completion() as completion:
@@ -181,7 +193,7 @@ def build_docker_image(dockerfile, image_name, ogre_dir_path):
 
     return out
 
-def spin_up_container(image_name, project_path):
+def spin_up_container(image_name, project_path, port):
     # spin up container
     
     platform_name = "linux/{}".format(platform.machine())
@@ -194,18 +206,19 @@ def spin_up_container(image_name, project_path):
     print("image name = {}".format(image_name))
     
     spin_up_cmd = (
-        "docker run -d --rm -v {}:/opt/{} \
-            -p 8001:8001 \
+        "docker run -it --rm -v {}:/opt/{} \
+            -p {}:{} \
             --name {} \
-            {} bash".format(project_path, project_name, container_name, image_name)  
+            {}".format(project_path, project_name, port, port, container_name, image_name)  
     )
 
     print(spin_up_cmd)
-    p = subprocess.Popen(spin_up_cmd, stdout=subprocess.PIPE, shell=True)
-    (out, err) = p.communicate()
-    p_status = p.wait()
-
-    return out
+    subprocess.call(spin_up_cmd.split())
+    #p = subprocess.Popen(spin_up_cmd, stdout=subprocess.PIPE, shell=True)
+    #(out, err) = p.communicate()
+    #p_status = p.wait()
+    
+    return 0
     
 def display_figlet():
     # Display Ogre figlet

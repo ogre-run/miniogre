@@ -30,9 +30,6 @@ def _run_welcome(project_path, product, version, ogre_dir, date):
     os.chdir(original_pwd)
 
     BOILERPLATE = """
-        echo PRODUCT = {}
-        echo VERSION = {}
-        echo BUILD_DATE = {} 
         echo REPOSITORY = {} 
         echo COMMIT = {}echo COMMIT_AUTHOR = {} 
         """.format(product, version, date, repo[:-1], commit, author)
