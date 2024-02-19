@@ -133,7 +133,7 @@ def run(model: str = os.getenv('OPENAI_MODEL'),
     Run miniogre
     """
     display_figlet()
-    display_emoji()
+    starting_emoji()
 
     if baseimage == 'auto':
         baseimage = config_baseimage()
@@ -157,8 +157,9 @@ def run(model: str = os.getenv('OPENAI_MODEL'),
     config_bashrc(project_path, ogre_dir_path, None, None, None)
     config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
     build_docker_image(os.path.join(ogre_dir_path, "Dockerfile"), project_name, ogre_dir_path)
-    display_end()
+    create_sbom(project_name, project_path, port)
     spin_up_container(project_name, project_path, port)
+    end_emoji()
 
 if __name__ == '__main__':
     app()

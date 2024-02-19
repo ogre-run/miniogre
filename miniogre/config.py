@@ -47,11 +47,11 @@ def config_bashrc(project_dir, ogre_dir, product, version, date):
     """
 
     if os.path.isfile("{}/bashrc".format(project_dir)):
-        print("bashrc exists in {}".format(project_dir))
+        print("   bashrc exists in {}".format(project_dir))
         os.popen("cp {}/bashrc {}/bashrc".format(project_dir, ogre_dir))
 
     else:
-        print("bashrc doesn't exist. Making a new one for you.")
+        print("   bashrc doesn't exist. Making a new one for you.")
         with open("{}/bashrc".format(ogre_dir), "w") as f:
             f.write(BASHRC)
         f.close()
@@ -67,7 +67,7 @@ def config_dockerfile(project_dir, project_name, ogre_dir,
     config file.
     """
 
-    REQUIREMENTS_LINE = 'RUN cat ./{}/requirements.txt | xargs -L 1 pip3 install; exit 0'.format(os.path.basename(ogre_dir))
+    REQUIREMENTS_LINE = 'RUN cat ./{}/requirements.txt | xargs -L 1 uv pip3 install; exit 0'.format(os.path.basename(ogre_dir))
 
     if dry:
         print(
@@ -90,11 +90,11 @@ def config_dockerfile(project_dir, project_name, ogre_dir,
     else:
 
         if os.path.isfile("{}/Dockerfile".format(project_dir)):
-            print("Dockerfile exists in {}".format(project_dir))
+            print("   Dockerfile exists in {}".format(project_dir))
             os.popen("cp {}/Dockerfile {}/Dockerfile".format(project_dir, ogre_dir))
         else:
             print(
-                "Dockerfile doesn't exist. Making a new one for you using {}".format(
+                "   Dockerfile doesn't exist. Making a new one for you using {}".format(
                     baseimage
                 )
             )

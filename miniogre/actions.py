@@ -7,6 +7,7 @@ import pkg_resources
 from openai import OpenAI
 from pyfiglet import Figlet
 from rich import print as rprint
+from yaspin import yaspin
 from .constants import *
 
 
@@ -40,9 +41,9 @@ def count_extensions(extensions):
     return counts
 
 # Get most prevalent extension for code files
-def determine_most_ext(counts):    
+def determine_most_ext(counts):
+    #TODO: implement logic to determine the codebase.    
     return '.py'
-
 
 def find_readme(project_path):
     files = list_files(project_path)
@@ -130,6 +131,7 @@ def read_context(path_to_context_file):
     return contents
 
 def extract_requirements(model, contents, prompt):
+    requirements_emoji()
     completion = client.chat.completions.create(
                   model=model,
                   messages=[
@@ -177,46 +179,62 @@ def build_docker_image(dockerfile, image_name, ogre_dir_path):
     platform_name = "linux/{}".format(platform.machine())
     image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
 
-    print("Building Docker image...")
-    print("platform = {}".format(platform_name)) 
-    print("image name = {}".format(image_name))
+    build_emoji()
+    print("   platform = {}".format(platform_name)) 
+    print("   image name = {}".format(image_name))
     
     build_cmd = (
         "DOCKER_BUILDKIT=1 docker buildx build --load --progress=auto --platform {} -t {} -f {} .".format(
             platform_name, image_name, dockerfile
         )
     )
-    print(build_cmd)
-    p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, shell=True)
-    (out, err) = p.communicate()
-    p_status = p.wait()
+    print("   build command = {}".format(build_cmd))
+    with yaspin().aesthetic as sp:
+        sp.text = "generating ogre environment" 
+        p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        (out, err) = p.communicate()
+        p_status = p.wait()
 
     return out
 
 def spin_up_container(image_name, project_path, port):
     # spin up container
-    
-    platform_name = "linux/{}".format(platform.machine())
+    spinup_emoji()
+
     project_name = image_name
     container_name = "miniogre-{}".format(image_name.lower())
     image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
     
-    print("Spinning up container...")
-    print("platform = {}".format(platform_name)) 
-    print("image name = {}".format(image_name))
-    
     spin_up_cmd = (
-        "docker run -it --rm -v {}:/opt/{} \
-            -p {}:{} \
-            --name {} \
-            {}".format(project_path, project_name, port, port, container_name, image_name)  
+        "docker run -it --rm -v {}:/opt/{} -p {}:{} --name {} {}".format(project_path, project_name, port, port, container_name, image_name)  
     )
 
-    print(spin_up_cmd)
+    print("   spin up command = {}".format(spin_up_cmd))
     subprocess.call(spin_up_cmd.split())
     #p = subprocess.Popen(spin_up_cmd, stdout=subprocess.PIPE, shell=True)
     #(out, err) = p.communicate()
     #p_status = p.wait()
+
+    return 0
+
+def create_sbom(image_name, project_path, port):
+    # Create SBOM from inside the container
+    print(emoji.emojize(':desktop_computer:  SBOM...'))
+
+    project_name = image_name
+    container_name = "miniogre-{}".format(image_name.lower())
+    image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
+
+    pip_licenses_cmd = "'pip-licenses --with-authors --with-maintainers --with-urls --with-description -l --format csv --output-file sbom.csv'"
+
+    sbom_cmd = (
+        "docker run -d --rm -v {}:/opt/{} --name {}_sbom {} bash -c '{}'".format(project_path, project_name, container_name, image_name, pip_licenses_cmd)  
+    )
+    
+    print(sbom_cmd)
+    p = subprocess.Popen(sbom_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    p.communicate()
+    p.wait()
 
     return 0
     
@@ -228,12 +246,21 @@ def display_figlet():
     rprint("[cyan] {} [/cyan]".format(f.renderText("miniogre")))
     rprint("[blue bold]miniogre - {}[/blue bold]".format("https://ogre.run"))
     print("\n")
+    
+def starting_emoji():
+    print(emoji.emojize(':ogre: Starting miniogre...'))
 
-def display_emoji():
-    print(emoji.emojize('Starting miniogre :ogre: ...'))
+def end_emoji():
+    print(emoji.emojize(':hourglass_done: Done.'))
 
-def display_end():
-    print(emoji.emojize('Done :rocket:'))
+def build_emoji():
+    print(emoji.emojize(':spouting_whale: Building Docker image...'))
+
+def spinup_emoji():
+    print(emoji.emojize(':rocket: Spinning up container...'))
+
+def requirements_emoji():
+    print(emoji.emojize(':thinking_face: Generating requirements...'))
 
 def create_virtualenv(requirements, python_version):
   
