@@ -144,15 +144,22 @@ def extract_requirements(model, contents, prompt):
     return requirements
 
 def rewrite_readme(model, contents, prompt):
-    completion = client.chat.completions.create(
-                  model=model,
-                  messages=[
-                      {"role": "system", "content": prompt},
-                      {"role": "user", "content": contents}
-                  ]
-              )
-    new_readme = completion.choices[0].message.content
+    readme_emoji()
+    if 'OPENAI_API_KEY' not in os.environ:
+        raise EnvironmentError("OPENAI_API_KEY environment variable not defined")
     
+    try:
+        completion = client.chat.completions.create(
+                        model=model,
+                        messages=[
+                            {"role": "system", "content": prompt},
+                            {"role": "user", "content": contents}
+                        ]
+                    )
+        new_readme = completion.choices[0].message.content
+    except Exception as e:
+        print(e)
+
     return new_readme
 
 def extract_requirements_groq(contents, prompt):
@@ -170,8 +177,13 @@ def save_requirements(requirements, ogre_dir_path):
     requirements_fullpath = os.path.join(ogre_dir_path, 'requirements.txt')
     with open(requirements_fullpath, 'w') as f:
         f.write(requirements)
-        
     return requirements_fullpath 
+
+def save_readme(readme, ogre_dir_path):
+    readme_fullpath = os.path.join(ogre_dir_path, 'README.md')
+    with open(readme_fullpath, 'w') as f:
+        f.write(readme)
+    return readme_fullpath 
 
 def build_docker_image(dockerfile, image_name, ogre_dir_path):
     # build docker image
@@ -264,6 +276,9 @@ def spinup_emoji():
 
 def requirements_emoji():
     print(emoji.emojize(':thinking_face: Generating requirements...'))
+
+def readme_emoji():
+    print(emoji.emojize(':notebook: Generating new README.md...'))
 
 def create_virtualenv(requirements, python_version):
   

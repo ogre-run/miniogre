@@ -15,14 +15,13 @@ prompt_rewrite_readme = os.getenv('PROMPT_REWRITE_README')
 
 @app.command()
 def readme(model: str = os.getenv('OPENAI_MODEL'),
-                  limit_source_files: int = 1):
+           limit_source_files: int = 1):
     """
     Rewrite readme
     """
 
     display_figlet()
-    display_emoji()
-    #global project_path, prompt, 
+    starting_emoji()
 
     ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv('OGRE_DIR')))
     files = list_files(project_path)
@@ -38,19 +37,13 @@ def readme(model: str = os.getenv('OPENAI_MODEL'),
                                              "{}/context_file.txt".format(ogre_dir_path))
     requirements = extract_requirements(model, readme_contents, prompt)
     new_readme = rewrite_readme(model, context_contents, prompt_rewrite_readme)
-    
-    print(new_readme)
-
-    #requirements_fullpath = save_requirements(requirements, ogre_dir_path)
-
-    # print("> list of requirements: \n")
-    # for req in requirements:
-    #     print(req)
+    readme_path = save_readme(new_readme, ogre_dir_path)
+    end_emoji() 
 
     return 0
 
 @app.command()
-def run(model: str = os.getenv('OPENAI_MODEL'), 
+def run(requirements: str = 'openai', 
         baseimage: str = 'auto',
         port: str = '8001',
         dry: bool = False,
@@ -58,6 +51,7 @@ def run(model: str = os.getenv('OPENAI_MODEL'),
     """
     Run miniogre
     """
+
     display_figlet()
     starting_emoji()
 
@@ -76,9 +70,12 @@ def run(model: str = os.getenv('OPENAI_MODEL'),
     readme_path = find_readme(project_path)
     readme_contents = read_file_contents(readme_path)
     ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv('OGRE_DIR')))
-    pre_requirements = extract_requirements_from_code(project_path, most_ext)
-    requirements = extract_requirements(model, readme_contents, prompt)
-    requirements_fullpath = save_requirements(requirements, ogre_dir_path)
+    if requirements == 'openai':
+        model = os.getenv('OPENAI_MODEL')
+        final_requirements = extract_requirements(model, readme_contents, prompt)
+    elif requirements == 'local':
+        final_requirements = extract_requirements_from_code(project_path, most_ext)
+    requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)
     config_bashrc(project_path, ogre_dir_path, None, None, None)
     config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
     build_docker_image(os.path.join(ogre_dir_path, "Dockerfile"), project_name, ogre_dir_path)
