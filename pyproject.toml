@@ -15,6 +15,7 @@ emoji = "^2.10.1"
 pyfiglet = "^1.0.2"
 rich = "^13.7.0"
 groq = "^0.3.0"
+yaspin = "^3.0.1"
 
 [tool.poetry.dev-dependencies]
 
