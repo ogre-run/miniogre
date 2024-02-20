@@ -53,7 +53,8 @@ def readme(model: str = os.getenv('OPENAI_MODEL'),
 def run(model: str = os.getenv('OPENAI_MODEL'), 
         baseimage: str = 'auto',
         port: str = '8001',
-        dry: bool = False):
+        dry: bool = False,
+        sbom_format: str = 'pip-licenses'):
     """
     Run miniogre
     """
@@ -81,7 +82,7 @@ def run(model: str = os.getenv('OPENAI_MODEL'),
     config_bashrc(project_path, ogre_dir_path, None, None, None)
     config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
     build_docker_image(os.path.join(ogre_dir_path, "Dockerfile"), project_name, ogre_dir_path)
-    create_sbom(project_name, project_path, port)
+    create_sbom(project_name, project_path, sbom_format)
     end_emoji()
     spin_up_container(project_name, project_path, port)
 

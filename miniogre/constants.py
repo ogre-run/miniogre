@@ -5,7 +5,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 COPY . .
 RUN cp ./ogre_dir/bashrc /etc/bash.bashrc
 RUN chmod a+rwx /etc/bash.bashrc
-RUN pip install uv pip-licenses
+RUN pip install uv pip-licenses cyclonedx-bom
 """
 
 DOCKERFILE_DRY = """
@@ -15,7 +15,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 COPY . .
 RUN cp ./ogre_dir/bashrc /etc/bash.bashrc
 RUN chmod a+rwx /etc/bash.bashrc
-RUN pip install uv pip-licenses
+RUN pip install uv pip-licenses cyclonedx-bom
 """
 
 BASHRC = """

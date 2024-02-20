@@ -191,7 +191,8 @@ def build_docker_image(dockerfile, image_name, ogre_dir_path):
     print("   build command = {}".format(build_cmd))
     with yaspin().aesthetic as sp:
         sp.text = "generating ogre environment" 
-        p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        #p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, shell=True)
         (out, err) = p.communicate()
         p_status = p.wait()
 
@@ -217,7 +218,7 @@ def spin_up_container(image_name, project_path, port):
 
     return 0
 
-def create_sbom(image_name, project_path, port):
+def create_sbom(image_name, project_path, format):
     # Create SBOM from inside the container
     print(emoji.emojize(':desktop_computer:  Generating SBOM...'))
 
@@ -225,10 +226,13 @@ def create_sbom(image_name, project_path, port):
     container_name = "miniogre-{}".format(image_name.lower())
     image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
 
-    pip_licenses_cmd = "pip-licenses --with-authors --with-maintainers --with-urls --with-description -l --format json --output-file ./ogre_dir/sbom.json"
+    if format == 'cyclonedx':
+        sbom_format_cmd = "cyclonedx-py requirements ./ogre_dir/requirements.txt &> ./ogre_dir/sbom.json"
+    elif format == 'pip-licenses':
+        sbom_format_cmd = "pip-licenses --with-authors --with-maintainers --with-urls --with-description -l --format json --output-file ./ogre_dir/sbom.json"
 
     sbom_cmd = (
-        "   docker run -d --rm -v {}:/opt/{} --name {}_sbom {} bash -c '{}; wait'".format(project_path, project_name, container_name, image_name, pip_licenses_cmd)  
+        "   docker run -d --rm -v {}:/opt/{} --name {}_sbom {} bash -c '{}; wait'".format(project_path, project_name, container_name, image_name, sbom_format_cmd)  
     )
     
     print(sbom_cmd)
