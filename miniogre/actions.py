@@ -219,16 +219,16 @@ def spin_up_container(image_name, project_path, port):
 
 def create_sbom(image_name, project_path, port):
     # Create SBOM from inside the container
-    print(emoji.emojize(':desktop_computer:  SBOM...'))
+    print(emoji.emojize(':desktop_computer:  Generating SBOM...'))
 
     project_name = image_name
     container_name = "miniogre-{}".format(image_name.lower())
     image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
 
-    pip_licenses_cmd = "'pip-licenses --with-authors --with-maintainers --with-urls --with-description -l --format csv --output-file sbom.csv'"
+    pip_licenses_cmd = "pip-licenses --with-authors --with-maintainers --with-urls --with-description -l --format json --output-file ./ogre_dir/sbom.json"
 
     sbom_cmd = (
-        "docker run -d --rm -v {}:/opt/{} --name {}_sbom {} bash -c '{}'".format(project_path, project_name, container_name, image_name, pip_licenses_cmd)  
+        "   docker run -d --rm -v {}:/opt/{} --name {}_sbom {} bash -c '{}; wait'".format(project_path, project_name, container_name, image_name, pip_licenses_cmd)  
     )
     
     print(sbom_cmd)
