@@ -191,8 +191,7 @@ def build_docker_image(dockerfile, image_name, ogre_dir_path):
     print("   build command = {}".format(build_cmd))
     with yaspin().aesthetic as sp:
         sp.text = "generating ogre environment" 
-        #p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (out, err) = p.communicate()
         p_status = p.wait()
 
