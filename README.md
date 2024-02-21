@@ -1,34 +1,34 @@
 # Miniogre
 
-**miniogre** is a command line application that helps generate a Dockerfile, requirements.txt file, and SBOM files for a Python project by analyzing the project codebase and README.
+**Miniogre** is a command-line application that analyzes a Python project codebase and README file to automatically generate a Dockerfile, requirements.txt file, and SBOM files. This tool expedites the process of dockerizing any Python application.
 
-## How it works
+## How it Works
 
-The main entry point is miniogre/main.py. This contains the Typer CLI definition and main command functions.
+Upon running the application, it carries out the following steps:
 
-The key steps are:
+- The project directory is scrutinized to identify the primary code language.
+- The README file is located and read.
+- GPT-4 language model is used to predict the application dependencies and generate content for the `requirements.txt` file based on the README contents.
+- The `requirements.txt`, `Dockerfile`, and `sbom.json` files are created.
+- A Docker image of the application is built.
+- An ogre container is spun up.
 
-- Analyze project directory to determine main code language
-- Find and read README file
-- Use GPT-4 to generate requirements.txt content by prompting with README contents
-- Generate requirements.txt
-- Generate Dockerfile
-- Generate SBOM.json
-- Build Docker image
-- Spin up ogre container
+Two main commands can be run, with the `miniogre/main.py` file serving as the entry point.
 
-The `miniogre` module contains the main logic:
+- **run**: Executes a series of actions, including configuring directories and files (bashrc, Dockerfile), generating requirements, building a Docker image, and spinning up a container.
+- **readme**: Constructs a new `README.md` file that mirrors the operations observed within the source code.
 
-- `main.py`: This where the commands are defined.
-- `actions.py`: Functions for listing files, extracting extensions, reading README, generating requirements with GPT-4, and building Docker image.
-- `config.py`: Functions for configuring output directory, bashrc, and Dockerfile.
-- `constants.py`: Template strings for Dockerfile and bashrc.
+For more in-depth execution details, refer to `miniogre/main.py`,`miniogre/actions.py`, and `miniogre/config.py`.
 
-The .env file defines environment variables such as the GPT-4 model name and prompt content.
+## Requirements
 
-So in summary, miniogre inspects your project, prompts GPT-4 to generate requirements from the README, and builds a Dockerfile to containerize your application. This automates the process of dockerizing a Python application.
+To use miniogre effectively, ensure the following are installed:
 
-## Usage
+- Python 3: Miniogre is developed in Python. If it's not already installed, [get Python here](https://www.python.org/downloads/).
+- Docker: Docker is a platform used to eliminate "works on my machine" problems when collaborating on code with co-workers. If it's not already installed, [get Docker here](https://docs.docker.com/get-docker/).
+- pip or pipx: These are python package installers used to install miniogre. If they are not already installed, [get pipx here](https://pipxproject.github.io/pipx/installation/) or [pip here](https://pip.pypa.io/en/stable/installing/).
+
+## Usage 
 
 After installation, go inside the project folder and run:
 
@@ -41,9 +41,9 @@ There are other commands:
 - `readme`: Analyzes the source code to generate a new `README.md` file that is compatible with what actually happens in the source code.  
 
 ## Installation
-
-- Using `pip`: `pip install miniogre`
-- Using `pipx`: `pipx install miniogre`
+Miniogre can be installed either by using `pip` or `pipx`:
+- `pip install miniogre`
+- `pipx install miniogre`
 
 ## Contributing
-Contributions are welcomed! Please reach out to the maintainers if you have any questions: [contact@ogre.run](contact@ogre.run).
+Contributions to improve this resource are more than welcome. For inquiries, contact the maintainers at [contact@ogre.run](contact@ogre.run).
