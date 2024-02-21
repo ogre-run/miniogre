@@ -27,6 +27,7 @@ To use miniogre effectively, ensure the following are installed:
 - Python 3: Miniogre is developed in Python. If it's not already installed, [get Python here](https://www.python.org/downloads/).
 - Docker: Docker is a platform used to eliminate "works on my machine" problems when collaborating on code with co-workers. If it's not already installed, [get Docker here](https://docs.docker.com/get-docker/).
 - pip or pipx: These are python package installers used to install miniogre. If they are not already installed, [get pipx here](https://pipxproject.github.io/pipx/installation/) or [pip here](https://pip.pypa.io/en/stable/installing/).
+- An OpenAI token in the environment: `export OPENAI_API_KEY=<YOUR_TOKEN>`
 
 ## Usage 
 
