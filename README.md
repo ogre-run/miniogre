@@ -1,6 +1,6 @@
 # Miniogre
 
-miniogre is a command line application that helps generate a Dockerfile and requirements.txt for a Python project by analyzing the project codebase and README.
+**miniogre** is a command line application that helps generate a Dockerfile, requirements.txt file, and SBOM files for a Python project by analyzing the project codebase and README.
 
 ## How it works
 
@@ -10,33 +10,40 @@ The key steps are:
 
 - Analyze project directory to determine main code language
 - Find and read README file
-- Use GPT-3 to generate requirements.txt content by prompting with README contents
-- Generate Dockerfile and populate with requirements
+- Use GPT-4 to generate requirements.txt content by prompting with README contents
+- Generate requirements.txt
+- Generate Dockerfile
+- Generate SBOM.json
 - Build Docker image
+- Spin up ogre container
 
-The `miniogre_cli` module contains the main logic:
+The `miniogre` module contains the main logic:
 
-- `actions.py`: Functions for listing files, extracting extensions, reading README, generating requirements with GPT-3, and building Docker image.
+- `main.py`: This where the commands are defined.
+- `actions.py`: Functions for listing files, extracting extensions, reading README, generating requirements with GPT-4, and building Docker image.
 - `config.py`: Functions for configuring output directory, bashrc, and Dockerfile.
 - `constants.py`: Template strings for Dockerfile and bashrc.
 
-The .env file contains the GPT-3 model name and prompt content.
+The .env file defines environment variables such as the GPT-4 model name and prompt content.
 
-So in summary, miniogre inspects your project, prompts GPT-3 to generate requirements from the README, and builds a Dockerfile to containerize your application. This automates the process of dockerizing a Python application.
+So in summary, miniogre inspects your project, prompts GPT-4 to generate requirements from the README, and builds a Dockerfile to containerize your application. This automates the process of dockerizing a Python application.
 
 ## Usage
 
-After installation, run:
+After installation, go inside the project folder and run:
 
-`miniogre run <project_dir>`
+`miniogre run`
 
-This will analyze the project, generate `ogre_dir/Dockerfile` and `ogre_dir/requirements.txt`, and build a Docker image.
+This will analyze the project, generate `ogre_dir/Dockerfile`, `ogre_dir/requirements.txt`, and `ogre_dir/sbom.json` and build a Docker image.
 
-The requirements command just generates the requirements file.
+There are other commands:
+
+- `readme`: Analyzes the source code to generate a new `README.md` file that is compatible with what actually happens in the source code.  
 
 ## Installation
 
-`pip install miniogre`
+- Using `pip`: `pip install miniogre`
+- Using `pipx`: `pipx install miniogre`
 
 ## Contributing
-Contributions welcome!
+Contributions are welcomed! Please reach out to the maintainers if you have any questions: [contact@ogre.run](contact@ogre.run).

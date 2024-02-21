@@ -35,7 +35,7 @@ def readme(model: str = os.getenv('OPENAI_MODEL'),
     pre_requirements = extract_requirements_from_code(project_path, most_ext)
     context_contents = generate_context_file(readme_contents, source_contents, 
                                              "{}/context_file.txt".format(ogre_dir_path))
-    requirements = extract_requirements(model, readme_contents, prompt)
+    #requirements = extract_requirements(model, readme_contents, prompt)
     new_readme = rewrite_readme(model, context_contents, prompt_rewrite_readme)
     readme_path = save_readme(new_readme, ogre_dir_path)
     end_emoji() 
