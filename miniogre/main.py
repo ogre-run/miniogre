@@ -43,7 +43,7 @@ def readme(model: str = os.getenv('OPENAI_MODEL'),
     return 0
 
 @app.command()
-def run(requirements: str = 'openai', 
+def run(provider: str = 'openai', 
         baseimage: str = 'auto',
         port: str = '8001',
         dry: bool = False,
@@ -59,7 +59,6 @@ def run(requirements: str = 'openai',
         baseimage = config_baseimage()
 
     project_path = os.getcwd()
-    prompt = os.getenv('OPENAI_SECRET_PROMPT')
 
     project_name = os.path.basename(project_path)
 
@@ -70,11 +69,10 @@ def run(requirements: str = 'openai',
     readme_path = find_readme(project_path)
     readme_contents = read_file_contents(readme_path)
     ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv('OGRE_DIR')))
-    if requirements == 'openai':
-        model = os.getenv('OPENAI_MODEL')
-        final_requirements = extract_requirements(model, readme_contents, prompt)
-    elif requirements == 'local':
+    if provider == 'local':
         final_requirements = extract_requirements_from_code(project_path, most_ext)
+    else:
+        final_requirements = extract_requirements(provider, readme_contents)        
     requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)
     config_bashrc(project_path, ogre_dir_path, None, None, None)
     config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)

@@ -5,13 +5,13 @@ import subprocess
 import xmlrpc.client
 import pkg_resources
 from openai import OpenAI
+from octoai.client import Client as OctoAiClient
+from groq.cloud.core import Completion
 from pyfiglet import Figlet
 from rich import print as rprint
 from yaspin import yaspin
 from .constants import *
 
-
-client = OpenAI()
 
 def list_files(project_path):
     # List all files in current directory and subdirectories
@@ -130,8 +130,20 @@ def read_context(path_to_context_file):
         contents = f.read()
     return contents
 
-def extract_requirements(model, contents, prompt):
+def extract_requirements(provider, contents):
     requirements_emoji()
+    if provider == 'openai':
+        res = extract_requirements_openai(contents)
+    elif provider == 'octoai':
+        res = extract_requirements_octoai(contents)
+    elif provider == 'groq':
+        res = extract_requirements_groq(contents)
+    return res
+
+def extract_requirements_openai(contents):
+    model = os.getenv('OPENAI_MODEL')
+    prompt = os.getenv('OPENAI_SECRET_PROMPT')
+    client = OpenAI()
     completion = client.chat.completions.create(
                   model=model,
                   messages=[
@@ -143,8 +155,54 @@ def extract_requirements(model, contents, prompt):
     
     return requirements
 
-def rewrite_readme(model, contents, prompt):
+def extract_requirements_octoai(contents):
+    model = os.getenv('OCTOAI_MODEL')
+    prompt = os.getenv('OCTOAI_SECRET_PROMPT')
+    client = OctoAiClient()
+
+    completion = client.chat.completions.create(
+    messages=[
+            {
+                "role": "system",
+                "content": prompt
+            },
+            {
+                "role": "user",
+                "content": contents
+            }
+        ],
+    model=model,
+    max_tokens=20000,
+    presence_penalty=0,
+    temperature=0.1,
+    top_p=0.9)
+
+    requirements = completion.choices[0].message.content
+
+    return requirements
+
+def extract_requirements_groq(contents):
+    prompt = os.getenv('GROQ_SECRET_PROMPT')
+    with Completion() as completion:
+        full_prompt = prompt + " " + contents
+        response, id, stats = completion.send_prompt("llama2-70b-4096", user_prompt=full_prompt)
+        if response != "":
+            print(f"\nPrompt: {prompt}\n")
+            print(f"Request ID: {id}")
+            print(f"Output:\n {response}\n")
+            print(f"Stats:\n {stats}\n")
+    return response
+
+def save_requirements(requirements, ogre_dir_path):
+    requirements_fullpath = os.path.join(ogre_dir_path, 'requirements.txt')
+    with open(requirements_fullpath, 'w') as f:
+        f.write(requirements)
+    return requirements_fullpath 
+
+
+def rewrite_readme_openai(model, contents, prompt):
     readme_emoji()
+    client = OpenAI()
     if 'OPENAI_API_KEY' not in os.environ:
         raise EnvironmentError("OPENAI_API_KEY environment variable not defined")
     
@@ -161,23 +219,6 @@ def rewrite_readme(model, contents, prompt):
         print(e)
 
     return new_readme
-
-def extract_requirements_groq(contents, prompt):
-    print("> groq")
-    with Completion() as completion:
-        full_prompt = prompt + " " + contents
-        response, id, stats = completion.send_prompt("llama2-70b-4096", user_prompt=full_prompt)
-        if response != "":
-            print(f"\nPrompt: {prompt}\n")
-            print(f"Request ID: {id}")
-            print(f"Output:\n {response}\n")
-            print(f"Stats:\n {stats}\n")
-
-def save_requirements(requirements, ogre_dir_path):
-    requirements_fullpath = os.path.join(ogre_dir_path, 'requirements.txt')
-    with open(requirements_fullpath, 'w') as f:
-        f.write(requirements)
-    return requirements_fullpath 
 
 def save_readme(readme, ogre_dir_path):
     readme_fullpath = os.path.join(ogre_dir_path, 'README.md')
