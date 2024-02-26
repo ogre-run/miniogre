@@ -82,6 +82,8 @@ def extract_external_imports(code):
     return external_imports
 
 def extract_requirements_from_code(project_path, ext):
+
+    requirements_emoji()
     
     files = list_files(project_path)
     matching = [f for f in files if os.path.splitext(f)[1] == ext]
@@ -198,9 +200,6 @@ def extract_requirements_groq(contents):
     return response
 
 def clean_requirements(provider, requirements):
-
-    print(">>> Cleaning requirements")
-    provider = 'openai'
     model = os.getenv('OPENAI_MODEL')
     prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT')
     client = OpenAI()
