@@ -70,7 +70,12 @@ def run(provider: str = 'openai',
     readme_contents = read_file_contents(readme_path)
     ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv('OGRE_DIR')))
     if provider == 'local':
-        final_requirements = extract_requirements_from_code(project_path, most_ext)
+        local_requirements = extract_requirements_from_code(project_path, most_ext)
+        print(">>> local reqs")
+        print(local_requirements)
+        final_requirements = clean_requirements('openai', local_requirements)
+        print(">>> final reqs")
+        print(final_requirements)
     else:
         final_requirements = extract_requirements(provider, readme_contents)        
     requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)
