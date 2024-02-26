@@ -2,6 +2,8 @@
 
 **Miniogre** is a command-line application that analyzes a Python project codebase and README file to automatically generate a Dockerfile, requirements.txt file, and SBOM files. This tool expedites the process of dockerizing any Python application.
 
+![miniogre_gif_33](https://github.com/ogre-run/miniogre/assets/6482944/0850dbb5-6634-4f08-80a9-6fd8e3ca8e03)
+
 ## How it Works
 
 Upon running the application, it carries out the following steps:
