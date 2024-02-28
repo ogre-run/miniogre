@@ -104,27 +104,31 @@ def extract_external_imports(code):
     
     return external_imports
 
-def extract_requirements_from_code(project_path, ext):
+def extract_requirements_from_code(project_path, ext, generate = True):
 
     requirements_emoji()
-    
-    files = list_files(project_path)
-    matching = [f for f in files if os.path.splitext(f)[1] == ext]
 
-    external_imports = []
-    for filename in matching:
-        with open(os.path.join(project_path, filename), 'r') as readfile:
-            content = readfile.read()
-            try:
-                external_imports.append(extract_external_imports(content))
-            except Exception:
-                print("External imports extraction failed for file {}: {}".format(filename, Exception))
-    external_imports = [imp.split('.')[0] for sublist in external_imports for imp in sublist]
-    external_imports = list(set(external_imports))
+    if generate:
+        files = list_files(project_path)
+        matching = [f for f in files if os.path.splitext(f)[1] == ext]
 
-    requirements = '\n'.join(external_imports)
-        
+        external_imports = []
+        for filename in matching:
+            with open(os.path.join(project_path, filename), 'r') as readfile:
+                content = readfile.read()
+                try:
+                    external_imports.append(extract_external_imports(content))
+                except Exception:
+                    print("External imports extraction failed for file {}: {}".format(filename, Exception))
+        external_imports = [imp.split('.')[0] for sublist in external_imports for imp in sublist]
+        external_imports = list(set(external_imports))
+
+        requirements = '\n'.join(external_imports)
+    else:
+        with open('{}/requirements.txt'.format(os.getenv('OGRE_DIR')), 'r') as f:
+            requirements = f.read()
     return requirements
+
 
 def append_files_with_ext(project_path, ext, limit, output_file):
     files = list_files(project_path)
@@ -250,7 +254,6 @@ def clean_requirements_openai(requirements):
     return requirements
 
 def clean_requirements_mistral(requirements):
-    print('>> mistral call')
     model = os.getenv('MISTRAL_MODEL')
     prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT')
     api_key = os.environ["MISTRAL_API_KEY"]
