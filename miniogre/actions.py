@@ -8,11 +8,34 @@ import pkg_resources
 from openai import OpenAI
 from octoai.client import Client as OctoAiClient
 from groq.cloud.core import Completion
+from mistralai.client import MistralClient
+from mistralai.models.chat_completion import ChatMessage
 from pyfiglet import Figlet
 from rich import print as rprint
 from yaspin import yaspin
 from .constants import *
 
+
+def starting_emoji():
+    print(emoji.emojize(':ogre: Starting miniogre...'))
+
+def end_emoji():
+    print(emoji.emojize(':hourglass_done: Done.'))
+
+def build_emoji():
+    print(emoji.emojize(':spouting_whale: Building Docker image...'))
+
+def spinup_emoji():
+    print(emoji.emojize(':rocket: Spinning up container...'))
+
+def requirements_emoji():
+    print(emoji.emojize(':thinking_face: Generating requirements...'))
+
+def cleaning_requirements_emoji():
+    print(emoji.emojize(':cooking: Refining...'))
+
+def readme_emoji():
+    print(emoji.emojize(':notebook: Generating new README.md...'))
 
 def list_files(project_path):
     # List all files in current directory and subdirectories
@@ -200,6 +223,18 @@ def extract_requirements_groq(contents):
     return response
 
 def clean_requirements(provider, requirements):
+    cleaning_requirements_emoji()
+    if provider == 'openai':
+        res = clean_requirements_openai(requirements)
+    elif provider == 'octoai':
+        res = clean_requirements_octoai(requirements)
+    elif provider == 'groq':
+        res = clean_requirements_groq(requirements)
+    elif provider == 'mistral':
+        res = clean_requirements_mistral(requirements)
+    return res
+
+def clean_requirements_openai(requirements):
     model = os.getenv('OPENAI_MODEL')
     prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT')
     client = OpenAI()
@@ -214,12 +249,29 @@ def clean_requirements(provider, requirements):
 
     return requirements
 
+def clean_requirements_mistral(requirements):
+    print('>> mistral call')
+    model = os.getenv('MISTRAL_MODEL')
+    prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT')
+    api_key = os.environ["MISTRAL_API_KEY"]
+    client = MistralClient(api_key=api_key)
+    content = prompt + '\n' + requirements
+    messages = [ChatMessage(role="user", content=content)]
+    
+    # No streaming
+    chat_response = client.chat(
+        model=model,
+        messages=messages,
+    )
+    requirements = chat_response.choices[0].message.content
+
+    return requirements
+
 def save_requirements(requirements, ogre_dir_path):
     requirements_fullpath = os.path.join(ogre_dir_path, 'requirements.txt')
     with open(requirements_fullpath, 'w') as f:
         f.write(requirements)
     return requirements_fullpath 
-
 
 def rewrite_readme_openai(model, contents, prompt):
     readme_emoji()
@@ -323,24 +375,6 @@ def display_figlet():
     rprint("[cyan] {} [/cyan]".format(f.renderText("miniogre")))
     rprint("[blue bold]miniogre - {}[/blue bold]".format("https://ogre.run"))
     print("\n")
-    
-def starting_emoji():
-    print(emoji.emojize(':ogre: Starting miniogre...'))
-
-def end_emoji():
-    print(emoji.emojize(':hourglass_done: Done.'))
-
-def build_emoji():
-    print(emoji.emojize(':spouting_whale: Building Docker image...'))
-
-def spinup_emoji():
-    print(emoji.emojize(':rocket: Spinning up container...'))
-
-def requirements_emoji():
-    print(emoji.emojize(':thinking_face: Generating requirements...'))
-
-def readme_emoji():
-    print(emoji.emojize(':notebook: Generating new README.md...'))
 
 def create_virtualenv(requirements, python_version):
   
