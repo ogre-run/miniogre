@@ -43,9 +43,11 @@ def readme(model: str = os.getenv('OPENAI_MODEL'),
     return 0
 
 @app.command()
-def run(baseimage: str = 'auto',
+def run(provider: str = 'openai',
+        baseimage: str = 'auto',
         port: str = '8001',
         dry: bool = False,
+        force_requirements_generation: bool = True,
         sbom_format: str = 'pip-licenses'):
     """
     Run miniogre
@@ -68,8 +70,9 @@ def run(baseimage: str = 'auto',
     readme_path = find_readme(project_path)
     readme_contents = read_file_contents(readme_path)
     ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv('OGRE_DIR')))
-    local_requirements = extract_requirements_from_code(project_path, most_ext)
-    final_requirements = clean_requirements('openai', local_requirements)
+    generate_requirements = config_requirements(project_path, ogre_dir_path, force_requirements_generation)
+    local_requirements = extract_requirements_from_code(project_path, most_ext, generate_requirements)
+    final_requirements = clean_requirements(provider, local_requirements)
     requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)
     config_bashrc(project_path, ogre_dir_path, None, None, None)
     config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)

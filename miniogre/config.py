@@ -47,11 +47,11 @@ def config_bashrc(project_dir, ogre_dir, product, version, date):
     """
 
     if os.path.isfile("{}/bashrc".format(project_dir)):
-        print("   bashrc exists in {}".format(project_dir))
+        #print("   bashrc exists in {}".format(project_dir))
         os.popen("cp {}/bashrc {}/bashrc".format(project_dir, ogre_dir))
 
     else:
-        print("   bashrc doesn't exist. Making a new one for you.")
+        #print("   bashrc doesn't exist. Making a new one for you.")
         with open("{}/bashrc".format(ogre_dir), "w") as f:
             f.write(BASHRC)
         f.close()
@@ -125,3 +125,17 @@ def config_baseimage():
 
     return baseimage
     
+def config_requirements(project_dir, ogre_dir, force=False):
+
+    if force:
+        print("   requirements.txt exists in {}, but it will be OVERWRITTEN".format(project_dir))
+        return True
+    # Check if requirements.txt is in the root folder
+    if os.path.isfile("{}/requirements.txt".format(project_dir)):
+        print("   requirements.txt already exists and it will be reused.")
+        os.popen("cp {}/requirements.txt {}/requirements.txt".format(project_dir, ogre_dir))
+        res = False
+    else:
+        print("   requirements.txt does not exist. miniogre will create one for you.")
+        res = True
+    return res
