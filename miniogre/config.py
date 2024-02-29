@@ -127,11 +127,11 @@ def config_baseimage():
     
 def config_requirements(project_dir, ogre_dir, force=False):
 
-    if force:
-        print("   requirements.txt exists in {}, but it will be OVERWRITTEN".format(project_dir))
-        return True
     # Check if requirements.txt is in the root folder
     if os.path.isfile("{}/requirements.txt".format(project_dir)):
+        if force:
+            print("   requirements.txt exists in {}, but it will be OVERWRITTEN".format(project_dir))
+            return True
         print("   requirements.txt already exists and it will be reused.")
         os.popen("cp {}/requirements.txt {}/requirements.txt".format(project_dir, ogre_dir))
         res = False

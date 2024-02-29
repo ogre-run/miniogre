@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "miniogre"
-version = "0.2.0"
+version = "0.3.0-alpha"
 description = "miniogre: generate Dockerfile, requirements.txt, and SBOM from project directory"
 readme = "README.md"
 authors = ["Wilder Lopes <wilder@ogre.run>"]

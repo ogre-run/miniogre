@@ -80,14 +80,14 @@ def find_readme(project_path):
 
 def read_file_contents(path_to_file):
     if path_to_file == None:
-        return None
+        return ''
     else:
         if os.path.exists(path_to_file):
             with open(path_to_file, 'r') as f:
                 contents = f.read()
             return contents
         else:
-            return None
+            return ''
 
 def extract_external_imports(code):
     tree = ast.parse(code)
@@ -260,7 +260,7 @@ def clean_requirements_mistral(requirements):
     client = MistralClient(api_key=api_key)
     content = prompt + '\n' + requirements
     messages = [ChatMessage(role="user", content=content)]
-    
+
     # No streaming
     chat_response = client.chat(
         model=model,
@@ -276,8 +276,21 @@ def save_requirements(requirements, ogre_dir_path):
         f.write(requirements)
     return requirements_fullpath 
 
-def rewrite_readme_openai(model, contents, prompt):
+def rewrite_readme(provider, readme):
     readme_emoji()
+    if provider == 'openai':
+        res = rewrite_readme_openai(readme)
+    elif provider == 'octoai':
+        res = rewrite_readme_octoai(readme)
+    elif provider == 'groq':
+        res = rewrite_readme_groq(readme)
+    elif provider == 'mistral':
+        res = rewrite_readme_mistral(readme)
+    return res
+
+def rewrite_readme_openai(readme):
+    model = os.getenv('OPENAI_MODEL')
+    prompt = os.getenv('REWRITE_README_PROMPT')
     client = OpenAI()
     if 'OPENAI_API_KEY' not in os.environ:
         raise EnvironmentError("OPENAI_API_KEY environment variable not defined")
@@ -287,7 +300,7 @@ def rewrite_readme_openai(model, contents, prompt):
                         model=model,
                         messages=[
                             {"role": "system", "content": prompt},
-                            {"role": "user", "content": contents}
+                            {"role": "user", "content": readme}
                         ]
                     )
         new_readme = completion.choices[0].message.content
@@ -295,6 +308,29 @@ def rewrite_readme_openai(model, contents, prompt):
         print(e)
 
     return new_readme
+
+def rewrite_readme_octoai(readme):
+    raise NotImplementedError("rewrite_readme_octoai is not implemented.")
+
+def rewrite_readme_groq(readme):
+    raise NotImplementedError("rewrite_readme_groq is not implemented.")
+
+def rewrite_readme_mistral(readme):
+    model = os.getenv('MISTRAL_MODEL')
+    prompt = os.getenv('REWRITE_README_PROMPT')
+    api_key = os.environ["MISTRAL_API_KEY"]
+    client = MistralClient(api_key=api_key)
+    content = prompt + '\n' + readme
+    messages = [ChatMessage(role="user", content=content)]
+    
+    # No streaming
+    chat_response = client.chat(
+        model=model,
+        messages=messages,
+    )
+    requirements = chat_response.choices[0].message.content
+
+    return requirements
 
 def save_readme(readme, ogre_dir_path):
     readme_fullpath = os.path.join(ogre_dir_path, 'README.md')
