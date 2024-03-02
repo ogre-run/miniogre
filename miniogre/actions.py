@@ -3,8 +3,6 @@ import ast
 import emoji
 import platform
 import subprocess
-import xmlrpc.client
-import pkg_resources
 from openai import OpenAI
 from octoai.client import Client as OctoAiClient
 from groq.cloud.core import Completion
@@ -278,6 +276,32 @@ def clean_requirements_groq(requirements):
         response, id, stats = completion.send_prompt(model, user_prompt=full_prompt)
         
     return response
+
+def clean_requirements_octoai(requirements):
+    model = os.getenv('OCTOAI_MODEL')
+    prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT')
+    client = OctoAiClient()
+
+    completion = client.chat.completions.create(
+        messages=[
+                {
+                    "role": "system",
+                    "content": prompt
+                },
+                {
+                    "role": "user",
+                    "content": requirements
+                }
+            ],
+        model=model,
+        max_tokens=20000,
+        presence_penalty=0,
+        temperature=0.1,
+        top_p=0.9)
+
+    requirements = completion.choices[0].message.content
+
+    return requirements
 
 def save_requirements(requirements, ogre_dir_path):
     requirements_fullpath = os.path.join(ogre_dir_path, 'requirements.txt')
