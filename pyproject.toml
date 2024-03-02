@@ -1,7 +1,8 @@
 [tool.poetry]
 name = "miniogre"
-version = "0.3.0-alpha"
-description = "miniogre: generate Dockerfile, requirements.txt, and SBOM from project directory"
+version = "0.3.0"
+description = "miniogre: automate the installation of Python dependencies with AI,
+to ensure your code runs on any computer"
 readme = "README.md"
 authors = ["Wilder Lopes <wilder@ogre.run>"]
 include = [".env"]

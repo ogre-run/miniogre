@@ -10,7 +10,8 @@ Upon running the application, it carries out the following steps:
 
 - The project directory is scrutinized to identify the primary code language.
 - The README file is located and read.
-- GPT-4 language model is used to predict the application dependencies and generate content for the `requirements.txt` file based on the README contents.
+- The source code is crawled to obtain a preliminary list of requirements.
+- A large language model (LLM) provider (choices are `openai`, `mistral`, `groq`, `octoai`) is used to refine the list of requirements and generate the final content for the `requirements.txt` file.
 - The `requirements.txt`, `Dockerfile`, and `sbom.json` files are created.
 - A Docker image of the application is built.
 - An ogre container is spun up.
@@ -29,7 +30,20 @@ To use miniogre effectively, ensure the following are installed:
 - Python 3: Miniogre is developed in Python. If it's not already installed, [get Python here](https://www.python.org/downloads/).
 - Docker: Docker is a platform used to eliminate "works on my machine" problems when collaborating on code with co-workers. If it's not already installed, [get Docker here](https://docs.docker.com/get-docker/).
 - pip or pipx: These are python package installers used to install miniogre. If they are not already installed, [get pipx here](https://pipxproject.github.io/pipx/installation/) or [pip here](https://pip.pypa.io/en/stable/installing/).
-- An OpenAI token in the environment: `export OPENAI_API_KEY=<YOUR_TOKEN>`
+- An API token of at least one of the following LLM inference providers:
+    - `openai`: type `export OPENAI_API_KEY=<YOUR_TOKEN>` on the terminal;
+    - `mistral`: type `export MISTRAL_API_KEY=<YOUR_TOKEN>` on the terminal;
+    - `groq`: type `export GROQ_SECRET_ACCESS_KEY=<YOUR_TOKEN>` on the terminal;
+    - `octoai`: type `export OCTOAI_TOKEN=<YOUR_TOKEN>` on the terminal.
+
+OpenAI token in the environment: 
+
+## Installation
+Miniogre can be installed either by using `pip` or `pipx`:
+- `pip install miniogre`
+- `pipx install miniogre`
+
+You can also build the wheel from the source and then install it on your system. We provide a handy script `install.sh` to accomplish that.
 
 ## Usage 
 
@@ -42,11 +56,6 @@ This will analyze the project, generate `ogre_dir/Dockerfile`, `ogre_dir/require
 There are other commands:
 
 - `readme`: Analyzes the source code to generate a new `README.md` file that is compatible with what actually happens in the source code.  
-
-## Installation
-Miniogre can be installed either by using `pip` or `pipx`:
-- `pip install miniogre`
-- `pipx install miniogre`
 
 ## Contributing
 Contributions to improve this resource are more than welcome. For inquiries, contact the maintainers at [contact@ogre.run](contact@ogre.run).
