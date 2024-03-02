@@ -270,6 +270,15 @@ def clean_requirements_mistral(requirements):
 
     return requirements
 
+def clean_requirements_groq(requirements):
+    model = os.getenv('GROQ_MODEL')
+    prompt = os.getenv('GROQ_CLEAN_REQUIREMENTS_SECRET_PROMPT')
+    with Completion() as completion:
+        full_prompt = prompt + " " + requirements
+        response, id, stats = completion.send_prompt(model, user_prompt=full_prompt)
+        
+    return response
+
 def save_requirements(requirements, ogre_dir_path):
     requirements_fullpath = os.path.join(ogre_dir_path, 'requirements.txt')
     with open(requirements_fullpath, 'w') as f:
