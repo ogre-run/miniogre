@@ -1,8 +1,12 @@
-# Miniogre
+# miniogre
 
-**Miniogre** is a command-line application that analyzes a Python project codebase and README file to automatically generate a Dockerfile, requirements.txt file, and SBOM files. This tool expedites the process of dockerizing any Python application.
+**miniogre** automates the management of software dependencies with AI, to ensure your Python code runs on any computer. It is a command-line application that analyzes a Python codebase to automatically generate a Dockerfile, requirements.txt file, and SBOM files, expediting the process of packaging any Python application. Additionally, it is able to update the README (documentation) file to comply with what really happens in the source code.
 
 ![miniogre_gif_33](https://github.com/ogre-run/miniogre/assets/6482944/0850dbb5-6634-4f08-80a9-6fd8e3ca8e03)
+
+## Why miniogre
+
+Developers waste hours per week managing software dependencies. This is particularly true in AI development where many Python packages lack proper documentation and have outdated configuration files. **Miniogre empowers developers** to automatically identify, update, and install the necessary software dependencies to get code to work. Unlike other tools that need manual setup, **miniogre uses AI to quickly handle Python dependencies setup**, cutting down "dependency hunting" from hours a week to just minutes.
 
 ## How it Works
 
