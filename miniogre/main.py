@@ -74,6 +74,7 @@ def run(provider: str = 'openai',
     config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
     build_docker_image(os.path.join(ogre_dir_path, "Dockerfile"), project_name, ogre_dir_path)
     create_sbom(project_name, project_path, sbom_format)
+    resolve_version(project_name, project_path)
     end_emoji()
     spin_up_container(project_name, project_path, port)
 

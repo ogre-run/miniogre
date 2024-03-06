@@ -1,17 +1,16 @@
 DOCKERFILE = """
 ENV TZ=America/Chicago
-WORKDIR /opt/{}
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+WORKDIR /opt/{}
 COPY . .
 RUN cp ./ogre_dir/bashrc /etc/bash.bashrc
 RUN chmod a+rwx /etc/bash.bashrc
-RUN pip install uv pip-licenses cyclonedx-bom
 """
 
 DOCKERFILE_DRY = """
 ENV TZ=America/Chicago
-WORKDIR /opt/{}
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+WORKDIR /opt/{}
 COPY . .
 RUN cp ./ogre_dir/bashrc /etc/bash.bashrc
 RUN chmod a+rwx /etc/bash.bashrc

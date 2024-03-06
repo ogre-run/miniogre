@@ -382,14 +382,14 @@ def build_docker_image(dockerfile, image_name, ogre_dir_path):
     print("   image name = {}".format(image_name))
     
     build_cmd = (
-        "DOCKER_BUILDKIT=1 docker buildx build --load --progress=auto --platform {} -t {} -f {} .".format(
+        "DOCKER_BUILDKIT=1 docker buildx build --no-cache --load --progress=auto --platform {} -t {} -f {} .".format(
             platform_name, image_name, dockerfile
         )
     )
     print("   build command = {}".format(build_cmd))
     with yaspin().aesthetic as sp:
         sp.text = "generating ogre environment" 
-        p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, shell=True)
         (out, err) = p.communicate()
         p_status = p.wait()
 
@@ -431,14 +431,35 @@ def create_sbom(image_name, project_path, format):
     sbom_cmd = (
         "   docker run -d --rm -v {}:/opt/{} --name {}_sbom {} bash -c '{}; wait'".format(project_path, project_name, container_name, image_name, sbom_format_cmd)  
     )
-    
-    print(sbom_cmd)
+
     p = subprocess.Popen(sbom_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     p.communicate()
     p.wait()
 
     return 0
-    
+
+def resolve_version(image_name, project_path):
+
+    print(emoji.emojize(':desktop_computer:  Resolving versions...'))
+
+    project_name = image_name
+    container_name = "miniogre-{}".format(image_name.lower())
+    image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
+
+    rye_cmd = "cd ogre_dir; rye init; cat requirements.txt | xargs -L 1 rye add; exit 0; wait;"
+
+    resolve_version_cmd = (
+        "   docker run -d --rm -v {}:/opt/{} --name {}_version {} bash -c '{}'".format(project_path, project_name, container_name, image_name, rye_cmd)
+    )
+
+    print(resolve_version_cmd)
+
+    p = subprocess.Popen(resolve_version_cmd, stdout=subprocess.PIPE, shell=True)
+    (out, err) = p.communicate()
+    p_status = p.wait()
+
+    return 0
+
 def display_figlet():
     # Display Ogre figlet
     f = Figlet(font="slant")

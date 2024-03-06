@@ -1,6 +1,17 @@
+project = { dependencies = [
+    "pyfiglet>=1.0.2",
+    "emoji>=2.10.1",
+    "ast>=0.0.2",
+    "openai>=1.13.3",
+    "typer>=0.9.0",
+    "rich>=13.7.1",
+    "python-dotenv>=1.0.1",
+    "yaspin>=3.0.1",
+    "dotenv>=0.0.5",
+] }
 [tool.poetry]
 name = "miniogre"
-version = "0.3.0"
+version = "0.4.0-alpha"
 description = "miniogre: automate the installation of Python dependencies with AI, to ensure your code runs on any computer"
 readme = "README.md"
 authors = ["Wilder Lopes <wilder@ogre.run>"]
