@@ -46,7 +46,8 @@ def run(provider: str = 'openai',
         port: str = '8001',
         dry: bool = False,
         force_requirements_generation: bool = True,
-        sbom_format: str = 'pip-licenses'):
+        sbom_format: str = 'pip-licenses',
+        verbose: bool = False):
     """
     Run miniogre
     """
@@ -72,7 +73,7 @@ def run(provider: str = 'openai',
     requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)
     config_bashrc(project_path, ogre_dir_path, None, None, None)
     config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
-    build_docker_image(os.path.join(ogre_dir_path, "Dockerfile"), project_name, ogre_dir_path)
+    build_docker_image(os.path.join(ogre_dir_path, "Dockerfile"), project_name, verbose)
     create_sbom(project_name, project_path, sbom_format)
     end_emoji()
     spin_up_container(project_name, project_path, port)

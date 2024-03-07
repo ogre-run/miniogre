@@ -394,7 +394,7 @@ def save_readme(readme, ogre_dir_path):
         f.write(readme)
     return readme_fullpath 
 
-def build_docker_image(dockerfile, image_name, ogre_dir_path):
+def build_docker_image(dockerfile, image_name, verbose = False):
     # build docker image
     
     platform_name = "linux/{}".format(platform.machine())
@@ -410,9 +410,15 @@ def build_docker_image(dockerfile, image_name, ogre_dir_path):
         )
     )
     print("   build command = {}".format(build_cmd))
+
+    if verbose:
+        stderr = None
+    else:
+        stderr = subprocess.PIPE
+        
     with yaspin().aesthetic as sp:
         sp.text = "generating ogre environment" 
-        p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, stderr=stderr, shell=True)
         (out, err) = p.communicate()
         p_status = p.wait()
 
