@@ -87,9 +87,21 @@ def read_file_contents(path_to_file):
         else:
             return ''
 
+def conform_to_pep8(filename):
+
+    pep8_cmd = 'autopep8 --in-place --aggressive {}'.format(filename)
+    
+    p = subprocess.Popen(pep8_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    (out, err) = p.communicate()
+    p_status = p.wait()
+
+    return 0
+
 def extract_external_imports(code):
-    tree = ast.parse(code)
+
     external_imports = []
+    
+    tree = ast.parse(code)
     
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -99,7 +111,7 @@ def extract_external_imports(code):
         elif isinstance(node, ast.ImportFrom):
             if not node.module.startswith('.'):
                 external_imports.append(node.module)
-    
+   
     return external_imports
 
 def extract_requirements_from_code(project_path, ext, generate = True):
@@ -112,12 +124,22 @@ def extract_requirements_from_code(project_path, ext, generate = True):
 
         external_imports = []
         for filename in matching:
-            with open(os.path.join(project_path, filename), 'r') as readfile:
-                content = readfile.read()
-                try:
-                    external_imports.append(extract_external_imports(content))
-                except Exception:
-                    print("External imports extraction failed for file {}: {}".format(filename, Exception))
+            i = 0
+            while i < 2:
+                with open(os.path.join(project_path, filename), 'r') as readfile:
+                    content = readfile.read()
+                    try:
+                        external_imports.append(extract_external_imports(content))
+                        i = 2
+                    except Exception as e:
+                        if i == 1:
+                            i = 2
+                            print(e)
+                            print("External imports extraction failed for file {}: {}".format(filename, Exception))
+                        else:
+                            conform_to_pep8(filename)
+                            i += 1
+                
         external_imports = [imp.split('.')[0] for sublist in external_imports for imp in sublist]
         external_imports = list(set(external_imports))
 
@@ -126,6 +148,7 @@ def extract_requirements_from_code(project_path, ext, generate = True):
         with open('{}/requirements.txt'.format(os.getenv('OGRE_DIR')), 'r') as f:
             requirements = f.read()
     return requirements
+
 
 
 def append_files_with_ext(project_path, ext, limit, output_file):
@@ -382,14 +405,14 @@ def build_docker_image(dockerfile, image_name, ogre_dir_path):
     print("   image name = {}".format(image_name))
     
     build_cmd = (
-        "DOCKER_BUILDKIT=1 docker buildx build --load --progress=auto --platform {} -t {} -f {} .".format(
+        "DOCKER_BUILDKIT=1 docker buildx build --no-cache --load --progress=auto --platform {} -t {} -f {} .".format(
             platform_name, image_name, dockerfile
         )
     )
     print("   build command = {}".format(build_cmd))
     with yaspin().aesthetic as sp:
         sp.text = "generating ogre environment" 
-        p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, shell=True)
         (out, err) = p.communicate()
         p_status = p.wait()
 
