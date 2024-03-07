@@ -425,7 +425,8 @@ def spin_up_container(image_name, project_path, port):
     project_name = image_name
     container_name = "miniogre-{}".format(image_name.lower())
     image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
-    
+    #cmd = "uv venv; source .venv/bin/activate; cat ./{}/requirements.txt | xargs -L 1 uv pip install; exit 0;"
+    #cmd = "cat ./ogre_dir/requirements.txt | xargs -L 1 uv pip install; exit 0"
     spin_up_cmd = (
         "docker run -it --rm -v {}:/opt/{} -p {}:{} --name {} {}".format(project_path, project_name, port, port, container_name, image_name)  
     )

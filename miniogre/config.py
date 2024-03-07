@@ -67,7 +67,8 @@ def config_dockerfile(project_dir, project_name, ogre_dir,
     config file.
     """
 
-    REQUIREMENTS_LINE = 'RUN cat ./{}/requirements.txt | xargs -L 1 pip install; exit 0'.format(os.path.basename(ogre_dir))
+    #REQUIREMENTS_LINE = 'RUN cat ./{}/requirements.txt | xargs -L 1 pip install; exit 0'.format(os.path.basename(ogre_dir))
+    REQUIREMENTS_LINE = 'CMD ["./runtime.sh"]'
 
     if dry:
         print(
