@@ -445,7 +445,7 @@ def spin_up_container(image_name, project_path, port):
 
     return 0
 
-def create_sbom(image_name, project_path, format):
+def create_sbom(image_name, project_path, format, verbose = False):
     # Create SBOM from inside the container
     print(emoji.emojize(':desktop_computer:  Generating SBOM...'))
 
@@ -461,9 +461,12 @@ def create_sbom(image_name, project_path, format):
     sbom_cmd = (
         "   docker run -d --rm -v {}:/opt/{} --name {}_sbom {} bash -c '{}; wait'".format(project_path, project_name, container_name, image_name, sbom_format_cmd)  
     )
-    
-    print(sbom_cmd)
-    p = subprocess.Popen(sbom_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    if verbose:
+        stderr = None
+        print(sbom_cmd)
+    else:
+        stderr = subprocess.PIPE
+    p = subprocess.Popen(sbom_cmd, stdout=subprocess.PIPE, stderr=stderr, shell=True)
     p.communicate()
     p.wait()
 
