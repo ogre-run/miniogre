@@ -458,9 +458,11 @@ def create_sbom(image_name, project_path, format, verbose = False):
     elif format == 'pip-licenses':
         sbom_format_cmd = "pip-licenses --with-authors --with-maintainers --with-urls --with-description -l --format json --output-file ./ogre_dir/sbom.json"
 
-    sbom_cmd = (
-        "   docker run -d --rm -v {}:/opt/{} --name {}_sbom {} bash -c '{}; wait'".format(project_path, project_name, container_name, image_name, sbom_format_cmd)  
-    )
+    # sbom_cmd = (
+    #     "   docker run -d --rm -v {}:/opt/{} --name {}_sbom {} bash -c '{}; wait'".format(project_path, project_name, container_name, image_name, sbom_format_cmd)  
+    # )
+    sbom_cmd = sbom_format_cmd
+    
     if verbose:
         stderr = None
         print(sbom_cmd)

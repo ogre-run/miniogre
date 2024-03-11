@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "miniogre"
-version = "0.4.1"
+version = "0.4.2"
 description = "miniogre: automate the installation of Python dependencies with AI, to ensure your code runs on any computer"
 readme = "README.md"
 authors = ["Wilder Lopes <wilder@ogre.run>"]
@@ -20,6 +20,8 @@ yaspin = "^3.0.1"
 octoai-sdk = "^0.9.0"
 mistralai = "^0.1.3"
 autopep8 = "^2.0.4"
+cyclonedx-py = "^1.0.1"
+pip-licenses = "^4.3.4"
 
 [tool.poetry.dev-dependencies]
 

@@ -74,11 +74,11 @@ def run(provider: str = 'openai',
     requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)
     config_bashrc(project_path, ogre_dir_path, None, None, None)
     config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
-    build_docker_image(os.path.join(ogre_dir_path, "Dockerfile"), project_name, verbose)
     create_sbom(project_name, project_path, sbom_format, verbose)
-    end_emoji()
     if no_container == False:
+        build_docker_image(os.path.join(ogre_dir_path, "Dockerfile"), project_name, verbose)
         spin_up_container(project_name, project_path, port)
-
+    end_emoji()
+    
 if __name__ == '__main__':
     app()
