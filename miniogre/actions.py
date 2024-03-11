@@ -404,24 +404,30 @@ def build_docker_image(dockerfile, image_name, verbose = False):
     print("   platform = {}".format(platform_name)) 
     print("   image name = {}".format(image_name))
     
+    if verbose:
+        stderr = None
+        progress = 'plain'
+    else:
+        stderr = subprocess.PIPE
+        progress = 'auto'
+
     build_cmd = (
-        "DOCKER_BUILDKIT=1 docker buildx build --no-cache --load --progress=auto --platform {} -t {} -f {} .".format(
-            platform_name, image_name, dockerfile
+        "DOCKER_BUILDKIT=1 docker buildx build --no-cache --load --progress={} --platform {} -t {} -f {} .".format(
+            progress, platform_name, image_name, dockerfile
         )
     )
     print("   build command = {}".format(build_cmd))
 
     if verbose:
-        stderr = None
-    else:
-        stderr = subprocess.PIPE
-        
-    with yaspin().aesthetic as sp:
-        sp.text = "generating ogre environment" 
         p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, stderr=stderr, shell=True)
         (out, err) = p.communicate()
         p_status = p.wait()
-
+    else:
+        with yaspin().aesthetic as sp:
+            sp.text = "generating ogre environment" 
+            p = subprocess.Popen(build_cmd, stdout=subprocess.PIPE, stderr=stderr, shell=True)
+            (out, err) = p.communicate()
+            p_status = p.wait()
     return out
 
 def spin_up_container(image_name, project_path, port):
