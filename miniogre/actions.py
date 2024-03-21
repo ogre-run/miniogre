@@ -3,6 +3,7 @@ import ast
 import emoji
 import platform
 import subprocess
+import nbformat
 from openai import OpenAI
 from octoai.client import Client as OctoAiClient
 from groq.cloud.core import Completion
@@ -114,13 +115,32 @@ def extract_external_imports(code):
    
     return external_imports
 
+def convert_ipynb_to_py(ipynb_file, py_file):
+    with open(ipynb_file, 'r') as f:
+        nb = nbformat.read(f, as_version=4)
+
+    code = ""
+    for cell in nb.cells:
+        if cell.cell_type == 'code':
+            code += cell.source + "\n"
+
+    with open(py_file, 'w') as f:
+        f.write(code)
+
 def extract_requirements_from_code(project_path, ext, generate = True):
 
     requirements_emoji()
 
     if generate:
         files = list_files(project_path)
-        matching = [f for f in files if os.path.splitext(f)[1] == ext]
+        matching = []
+        for filename in files:
+            if filename.endswith(ext):
+                matching.append(filename)
+            elif filename.endswith(".ipynb"): 
+                new_filename = filename[:-6] + ".py" 
+                convert_ipynb_to_py(os.path.join(project_path, filename), new_filename)  
+                matching.append(new_filename)  
 
         external_imports = []
         for filename in matching:
