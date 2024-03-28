@@ -5,6 +5,7 @@ description = "miniogre: automate the installation of Python dependencies with A
 readme = "README.md"
 authors = ["Wilder Lopes <wilder@ogre.run>"]
 include = [".env"]
+homepage = "https://github.com/ogre-run/miniogre"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"

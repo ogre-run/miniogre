@@ -30,10 +30,11 @@ def readme(provider: str = 'openai',
     readme_path = find_readme(project_path)
     readme_contents = read_file_contents(readme_path)
     ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv('OGRE_DIR')))
-    source_contents = append_files_with_ext(project_path, most_ext, limit_source_files, 
-                                            "{}/source_contents.txt".format(ogre_dir_path))
-    context_contents = generate_context_file(readme_contents, source_contents, 
-                                             "{}/context_file.txt".format(ogre_dir_path))
+    #source_contents = append_files_with_ext(project_path, most_ext, limit_source_files, 
+    #                                        "{}/source_contents.txt".format(ogre_dir_path))
+    #context_contents = generate_context_file(readme_contents, source_contents, 
+    #                                         "{}/context_file.txt".format(ogre_dir_path))
+    context_contents = run_gptrepo(os.getcwd())
     new_readme = rewrite_readme(provider, context_contents)
     readme_path = save_readme(new_readme, ogre_dir_path)
     end_emoji() 
