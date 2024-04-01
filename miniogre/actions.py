@@ -249,6 +249,8 @@ def extract_requirements_groq(contents):
 
 def clean_requirements(provider, requirements):
     cleaning_requirements_emoji()
+    if provider == 'ollama':
+        res = clean_requirements_ollama(requirements)
     if provider == 'openai':
         res = clean_requirements_openai(requirements)
     elif provider == 'octoai':
@@ -258,6 +260,22 @@ def clean_requirements(provider, requirements):
     elif provider == 'mistral':
         res = clean_requirements_mistral(requirements)
     return res
+
+def clean_requirements_ollama(requirements):
+    model = os.getenv('OLLAMA_MODEL')
+    prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT')
+    api_server = os.getenv('OLLAMA_API_SERVER')
+    client = OpenAI(base_url=api_server, api_key='ollama')
+    completion = client.chat.completions.create(
+                  model=model,
+                  messages=[
+                      {"role": "system", "content": prompt},
+                      {"role": "user", "content": requirements}
+                  ]
+              )
+    requirements = completion.choices[0].message.content
+
+    return requirements
 
 def clean_requirements_openai(requirements):
     model = os.getenv('OPENAI_MODEL')
