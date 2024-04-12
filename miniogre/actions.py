@@ -519,14 +519,14 @@ def create_virtualenv(requirements, python_version):
             input()
             subprocess.call([pip_cmd, 'install', req.strip()])
 
-def run_gptrepo(repo_path):
+def run_gptify(repo_path):
     
-    gptrepo_cmd = 'gptrepo {}'.format(repo_path)
+    gptrepo_cmd = 'gptify {}'.format(repo_path)
     p = subprocess.Popen(gptrepo_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     (out, err) = p.communicate()
     p_status = p.wait()
 
-    print("generated gptrepo_output")
+    print("generated gptify_output")
 
-    with open('gptrepo_output.txt', 'r') as f:
+    with open('gptify_output.txt', 'r') as f:
         return f.read()
