@@ -38,6 +38,7 @@ def readme(provider: str = "openai", limit_source_files: int = 1):
     context_contents = run_gptify(os.getcwd())
     new_readme = rewrite_readme(provider, context_contents)
     readme_path = save_readme(new_readme, ogre_dir_path)
+    # cleanup()
     end_emoji()
 
     return 0

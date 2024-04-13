@@ -32,6 +32,9 @@ def requirements_emoji():
 def cleaning_requirements_emoji():
     print(emoji.emojize(':cooking: Refining...'))
 
+def generate_context_emoji():
+    print(emoji.emojize(':file_cabinet: Generating context...'))
+
 def readme_emoji():
     print(emoji.emojize(':notebook: Generating new README.md...'))
 
@@ -359,6 +362,7 @@ def rewrite_readme_openai(readme):
                             {"role": "user", "content": readme}
                         ]
                     )
+        print(completion)
         new_readme = completion.choices[0].message.content
     except Exception as e:
         print(e)
@@ -520,13 +524,23 @@ def create_virtualenv(requirements, python_version):
             subprocess.call([pip_cmd, 'install', req.strip()])
 
 def run_gptify(repo_path):
+
+    generate_context_emoji()
     
-    gptrepo_cmd = 'gptify {}'.format(repo_path)
+    if not os.path.exists("ogre_dir"):
+        os.mkdir("ogre_dir")
+
+    gptrepo_cmd = 'gptify {} --output "ogre_dir/gptify_output.txt"'.format(repo_path)
     p = subprocess.Popen(gptrepo_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     (out, err) = p.communicate()
     p_status = p.wait()
 
-    print("generated gptify_output")
-
-    with open('gptify_output.txt', 'r') as f:
+    with open('ogre_dir/gptify_output.txt', 'r') as f:
         return f.read()
+
+def cleanup():
+    """
+    Delete unnecessary files
+    """
+    if os.path.exists('ogre_dir/gptify_output.txt'):
+        os.remove('ogre_dir/gptify_output.txt')
