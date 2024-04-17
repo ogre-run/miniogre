@@ -10,8 +10,8 @@ app = typer.Typer()
 load_dotenv()
 
 project_path = os.getcwd()
-prompt = os.getenv('OPENAI_SECRET_PROMPT')
-prompt_rewrite_readme = os.getenv('PROMPT_REWRITE_README')
+# prompt = os.getenv('OPENAI_SECRET_PROMPT', OPENAI_SECRET_PROMPT)
+# prompt_rewrite_readme = os.getenv('PROMPT_REWRITE_README')
 
 @app.command()
 def readme(provider: str = 'openai',
@@ -29,7 +29,7 @@ def readme(provider: str = 'openai',
     most_ext = determine_most_ext(counts)
     readme_path = find_readme(project_path)
     readme_contents = read_file_contents(readme_path)
-    ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv('OGRE_DIR')))
+    ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv('OGRE_DIR', OGRE_DIR)))
     source_contents = append_files_with_ext(project_path, most_ext, limit_source_files, 
                                             "{}/source_contents.txt".format(ogre_dir_path))
     context_contents = generate_context_file(readme_contents, source_contents, 
@@ -67,7 +67,7 @@ def run(provider: str = 'openai',
     most_ext = determine_most_ext(counts)
     readme_path = find_readme(project_path)
     readme_contents = read_file_contents(readme_path)
-    ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv('OGRE_DIR')))
+    ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv('OGRE_DIR', OGRE_DIR)))
     generate_requirements = config_requirements(project_path, ogre_dir_path, force_requirements_generation)
     local_requirements = extract_requirements_from_code(project_path, most_ext, generate_requirements)
     final_requirements = clean_requirements(provider, local_requirements)

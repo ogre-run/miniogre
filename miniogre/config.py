@@ -121,7 +121,7 @@ def config_dockerfile(project_dir, project_name, ogre_dir,
 def config_baseimage():
 
     platform_machine = "{}".format(platform.machine())
-    baseimage = (os.getenv("OGRE_BASEIMAGE")).format(platform_machine)
+    baseimage = (os.getenv("OGRE_BASEIMAGE", OGRE_BASEIMAGE)).format(platform_machine)
 
     return baseimage
     
