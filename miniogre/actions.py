@@ -268,7 +268,7 @@ def clean_requirements_ollama(requirements):
     model = os.getenv('OLLAMA_MODEL', OLLAMA_MODEL)
     prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT', CLEAN_REQUIREMENTS_SECRET_PROMPT)
     api_server = os.getenv('OLLAMA_API_SERVER', OLLAMA_API_SERVER)
-    print(f"{api_server=} {model=} {prompt=}")
+    # print(f"{api_server=} {model=} {prompt=}")
     client = OpenAI(base_url=api_server, api_key='ollama')
     completion = client.chat.completions.create(
                   model=model,
@@ -284,7 +284,7 @@ def clean_requirements_ollama(requirements):
 def clean_requirements_openai(requirements):
     model = os.getenv('OPENAI_MODEL', OPENAI_MODEL)
     prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT', CLEAN_REQUIREMENTS_SECRET_PROMPT)
-    print(f"{model=} {prompt=}")
+    # print(f"{model=} {prompt=}")
     client = OpenAI()
     completion = client.chat.completions.create(
                   model=model,
@@ -382,7 +382,7 @@ def rewrite_readme_openai(readme):
                             {"role": "user", "content": readme}
                         ]
                     )
-        print(completion)
+        # print(completion)
         new_readme = completion.choices[0].message.content
     except Exception as e:
         print(e)
@@ -513,35 +513,35 @@ def display_figlet():
     rprint("[blue bold]miniogre - {}[/blue bold]".format("https://ogre.run"))
     print("\n")
 
-def create_virtualenv(requirements, python_version):
+# def create_virtualenv(requirements, python_version):
   
-    env_name = 'miniogre-env'
+#     env_name = 'miniogre-env'
 
-    venv_cmd = "python -m venv {}".format(env_name)
-    # venv_activate_cmd = 'source {}/bin/activate'.format(env_name) 
+#     venv_cmd = "python -m venv {}".format(env_name)
+#     # venv_activate_cmd = 'source {}/bin/activate'.format(env_name) 
 
-    #os.popen(venv_cmd)
-    #os.popen(venv_activate_cmd)
-    p = subprocess.Popen(venv_cmd, stdout=subprocess.PIPE, shell=True)
-    (out, err) = p.communicate()
-    p_status = p.wait()
+#     #os.popen(venv_cmd)
+#     #os.popen(venv_activate_cmd)
+#     p = subprocess.Popen(venv_cmd, stdout=subprocess.PIPE, shell=True)
+#     (out, err) = p.communicate()
+#     p_status = p.wait()
 
-    venv_activate_cmd = 'source {}/bin/activate'.format(env_name)
-    p = subprocess.Popen(venv_activate_cmd, stdout=subprocess.PIPE, shell=True)
-    (out, err) = p.communicate()
-    p_status = p.wait()
+#     venv_activate_cmd = 'source {}/bin/activate'.format(env_name)
+#     p = subprocess.Popen(venv_activate_cmd, stdout=subprocess.PIPE, shell=True)
+#     (out, err) = p.communicate()
+#     p_status = p.wait()
 
-    pip_cmd = '{}/bin/pip'.format(env_name)
-    with open(requirements) as f:
-        requirements_list = []
-        for line in f:
-            requirements_list.append(line.strip('\n'))
+#     pip_cmd = '{}/bin/pip'.format(env_name)
+#     with open(requirements) as f:
+#         requirements_list = []
+#         for line in f:
+#             requirements_list.append(line.strip('\n'))
 
-        pip_cmd = 'pip' 
-        for req in requirements_list:
-            print(req)
-            input()
-            subprocess.call([pip_cmd, 'install', req.strip()])
+#         pip_cmd = 'pip' 
+#         for req in requirements_list:
+#             print(req)
+#             input()
+#             subprocess.call([pip_cmd, 'install', req.strip()])
 
 def run_gptify(repo_path):
 

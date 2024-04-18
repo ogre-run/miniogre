@@ -11,14 +11,8 @@ app = typer.Typer()
 load_dotenv()
 
 project_path = os.getcwd()
-<<<<<<< HEAD
 # prompt = os.getenv('OPENAI_SECRET_PROMPT', OPENAI_SECRET_PROMPT)
 # prompt_rewrite_readme = os.getenv('PROMPT_REWRITE_README')
-=======
-prompt = os.getenv("OPENAI_SECRET_PROMPT")
-prompt_rewrite_readme = os.getenv("PROMPT_REWRITE_README")
-
->>>>>>> origin
 
 @app.command()
 def readme(provider: str = "openai", limit_source_files: int = 1):
@@ -29,26 +23,14 @@ def readme(provider: str = "openai", limit_source_files: int = 1):
     display_figlet()
     starting_emoji()
 
-    files = list_files(project_path)
-    extensions = get_extensions(files)
-    counts = count_extensions(extensions)
-    most_ext = determine_most_ext(counts)
-    readme_path = find_readme(project_path)
-    readme_contents = read_file_contents(readme_path)
-<<<<<<< HEAD
-    ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv('OGRE_DIR', OGRE_DIR)))
-    source_contents = append_files_with_ext(project_path, most_ext, limit_source_files, 
-                                            "{}/source_contents.txt".format(ogre_dir_path))
-    context_contents = generate_context_file(readme_contents, source_contents, 
-                                             "{}/context_file.txt".format(ogre_dir_path))
-=======
-    ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv("OGRE_DIR")))
-    # source_contents = append_files_with_ext(project_path, most_ext, limit_source_files,
-    #                                        "{}/source_contents.txt".format(ogre_dir_path))
-    # context_contents = generate_context_file(readme_contents, source_contents,
-    #                                         "{}/context_file.txt".format(ogre_dir_path))
+    # files = list_files(project_path)
+    # extensions = get_extensions(files)
+    # counts = count_extensions(extensions)
+    # most_ext = determine_most_ext(counts)
+    # readme_path = find_readme(project_path)
+    # readme_contents = read_file_contents(readme_path)
+    ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv("OGRE_DIR", OGRE_DIR)))
     context_contents = run_gptify(os.getcwd())
->>>>>>> origin
     new_readme = rewrite_readme(provider, context_contents)
     readme_path = save_readme(new_readme, ogre_dir_path)
     # cleanup()
