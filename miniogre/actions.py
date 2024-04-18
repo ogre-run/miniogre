@@ -148,7 +148,7 @@ def extract_requirements_from_code(project_path, ext, generate = True):
 
         requirements = '\n'.join(external_imports)
     else:
-        with open('{}/requirements.txt'.format(os.getenv('OGRE_DIR')), 'r') as f:
+        with open('{}/requirements.txt'.format(os.getenv('OGRE_DIR', OGRE_DIR)), 'r') as f:
             requirements = f.read()
     return requirements
 
@@ -198,8 +198,8 @@ def extract_requirements(provider, contents):
     return res
 
 def extract_requirements_openai(contents):
-    model = os.getenv('OPENAI_MODEL')
-    prompt = os.getenv('OPENAI_SECRET_PROMPT')
+    model = os.getenv('OPENAI_MODEL', OPENAI_MODEL)
+    prompt = os.getenv('OPENAI_SECRET_PROMPT', OPENAI_SECRET_PROMPT)
     client = OpenAI()
     completion = client.chat.completions.create(
                   model=model,
@@ -213,8 +213,8 @@ def extract_requirements_openai(contents):
     return requirements
 
 def extract_requirements_octoai(contents):
-    model = os.getenv('OCTOAI_MODEL')
-    prompt = os.getenv('OCTOAI_SECRET_PROMPT')
+    model = os.getenv('OCTOAI_MODEL', OCTOAI_MODEL)
+    prompt = os.getenv('OCTOAI_SECRET_PROMPT', OCTOAI_SECRET_PROMPT)
     client = OctoAiClient()
 
     completion = client.chat.completions.create(
@@ -239,7 +239,7 @@ def extract_requirements_octoai(contents):
     return requirements
 
 def extract_requirements_groq(contents):
-    prompt = os.getenv('GROQ_SECRET_PROMPT')
+    prompt = os.getenv('GROQ_SECRET_PROMPT', GROQ_SECRET_PROMPT)
     with Completion() as completion:
         full_prompt = prompt + " " + contents
         response, id, stats = completion.send_prompt("llama2-70b-4096", user_prompt=full_prompt)
@@ -252,6 +252,8 @@ def extract_requirements_groq(contents):
 
 def clean_requirements(provider, requirements):
     cleaning_requirements_emoji()
+    if provider == 'ollama':
+        res = clean_requirements_ollama(requirements)
     if provider == 'openai':
         res = clean_requirements_openai(requirements)
     elif provider == 'octoai':
@@ -262,9 +264,27 @@ def clean_requirements(provider, requirements):
         res = clean_requirements_mistral(requirements)
     return res
 
+def clean_requirements_ollama(requirements):
+    model = os.getenv('OLLAMA_MODEL', OLLAMA_MODEL)
+    prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT', CLEAN_REQUIREMENTS_SECRET_PROMPT)
+    api_server = os.getenv('OLLAMA_API_SERVER', OLLAMA_API_SERVER)
+    # print(f"{api_server=} {model=} {prompt=}")
+    client = OpenAI(base_url=api_server, api_key='ollama')
+    completion = client.chat.completions.create(
+                  model=model,
+                  messages=[
+                      {"role": "system", "content": prompt},
+                      {"role": "user", "content": requirements}
+                  ]
+              )
+    requirements = completion.choices[0].message.content
+
+    return requirements
+
 def clean_requirements_openai(requirements):
-    model = os.getenv('OPENAI_MODEL')
-    prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT')
+    model = os.getenv('OPENAI_MODEL', OPENAI_MODEL)
+    prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT', CLEAN_REQUIREMENTS_SECRET_PROMPT)
+    # print(f"{model=} {prompt=}")
     client = OpenAI()
     completion = client.chat.completions.create(
                   model=model,
@@ -278,8 +298,8 @@ def clean_requirements_openai(requirements):
     return requirements
 
 def clean_requirements_mistral(requirements):
-    model = os.getenv('MISTRAL_MODEL')
-    prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT')
+    model = os.getenv('MISTRAL_MODEL', MISTRAL_MODEL)
+    prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT', CLEAN_REQUIREMENTS_SECRET_PROMPT)
     api_key = os.environ["MISTRAL_API_KEY"]
     client = MistralClient(api_key=api_key)
     content = prompt + '\n' + requirements
@@ -295,8 +315,8 @@ def clean_requirements_mistral(requirements):
     return requirements
 
 def clean_requirements_groq(requirements):
-    model = os.getenv('GROQ_MODEL')
-    prompt = os.getenv('GROQ_CLEAN_REQUIREMENTS_SECRET_PROMPT')
+    model = os.getenv('GROQ_MODEL', GROQ_MODEL)
+    prompt = os.getenv('GROQ_CLEAN_REQUIREMENTS_SECRET_PROMPT', GROQ_CLEAN_REQUIREMENTS_SECRET_PROMPT)
     with Completion() as completion:
         full_prompt = prompt + " " + requirements
         response, id, stats = completion.send_prompt(model, user_prompt=full_prompt)
@@ -304,8 +324,8 @@ def clean_requirements_groq(requirements):
     return response
 
 def clean_requirements_octoai(requirements):
-    model = os.getenv('OCTOAI_MODEL')
-    prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT')
+    model = os.getenv('OCTOAI_MODEL', OCTOAI_MODEL)
+    prompt = os.getenv('CLEAN_REQUIREMENTS_SECRET_PROMPT', CLEAN_REQUIREMENTS_SECRET_PROMPT)
     client = OctoAiClient()
 
     completion = client.chat.completions.create(
@@ -348,8 +368,8 @@ def rewrite_readme(provider, readme):
     return res
 
 def rewrite_readme_openai(readme):
-    model = os.getenv('OPENAI_MODEL')
-    prompt = os.getenv('REWRITE_README_PROMPT')
+    model = os.getenv('OPENAI_MODEL', OPENAI_MODEL)
+    prompt = os.getenv('REWRITE_README_PROMPT', REWRITE_README_PROMPT)
     client = OpenAI()
     if 'OPENAI_API_KEY' not in os.environ:
         raise EnvironmentError("OPENAI_API_KEY environment variable not defined")
@@ -362,7 +382,7 @@ def rewrite_readme_openai(readme):
                             {"role": "user", "content": readme}
                         ]
                     )
-        print(completion)
+        # print(completion)
         new_readme = completion.choices[0].message.content
     except Exception as e:
         print(e)
@@ -376,8 +396,8 @@ def rewrite_readme_groq(readme):
     raise NotImplementedError("rewrite_readme_groq is not implemented.")
 
 def rewrite_readme_mistral(readme):
-    model = os.getenv('MISTRAL_MODEL')
-    prompt = os.getenv('REWRITE_README_PROMPT')
+    model = os.getenv('MISTRAL_MODEL', MISTRAL_MODEL)
+    prompt = os.getenv('REWRITE_README_PROMPT', REWRITE_README_PROMPT)
     api_key = os.environ["MISTRAL_API_KEY"]
     client = MistralClient(api_key=api_key)
     content = prompt + '\n' + readme
@@ -493,35 +513,35 @@ def display_figlet():
     rprint("[blue bold]miniogre - {}[/blue bold]".format("https://ogre.run"))
     print("\n")
 
-def create_virtualenv(requirements, python_version):
+# def create_virtualenv(requirements, python_version):
   
-    env_name = 'miniogre-env'
+#     env_name = 'miniogre-env'
 
-    venv_cmd = "python -m venv {}".format(env_name)
-    # venv_activate_cmd = 'source {}/bin/activate'.format(env_name) 
+#     venv_cmd = "python -m venv {}".format(env_name)
+#     # venv_activate_cmd = 'source {}/bin/activate'.format(env_name) 
 
-    #os.popen(venv_cmd)
-    #os.popen(venv_activate_cmd)
-    p = subprocess.Popen(venv_cmd, stdout=subprocess.PIPE, shell=True)
-    (out, err) = p.communicate()
-    p_status = p.wait()
+#     #os.popen(venv_cmd)
+#     #os.popen(venv_activate_cmd)
+#     p = subprocess.Popen(venv_cmd, stdout=subprocess.PIPE, shell=True)
+#     (out, err) = p.communicate()
+#     p_status = p.wait()
 
-    venv_activate_cmd = 'source {}/bin/activate'.format(env_name)
-    p = subprocess.Popen(venv_activate_cmd, stdout=subprocess.PIPE, shell=True)
-    (out, err) = p.communicate()
-    p_status = p.wait()
+#     venv_activate_cmd = 'source {}/bin/activate'.format(env_name)
+#     p = subprocess.Popen(venv_activate_cmd, stdout=subprocess.PIPE, shell=True)
+#     (out, err) = p.communicate()
+#     p_status = p.wait()
 
-    pip_cmd = '{}/bin/pip'.format(env_name)
-    with open(requirements) as f:
-        requirements_list = []
-        for line in f:
-            requirements_list.append(line.strip('\n'))
+#     pip_cmd = '{}/bin/pip'.format(env_name)
+#     with open(requirements) as f:
+#         requirements_list = []
+#         for line in f:
+#             requirements_list.append(line.strip('\n'))
 
-        pip_cmd = 'pip' 
-        for req in requirements_list:
-            print(req)
-            input()
-            subprocess.call([pip_cmd, 'install', req.strip()])
+#         pip_cmd = 'pip' 
+#         for req in requirements_list:
+#             print(req)
+#             input()
+#             subprocess.call([pip_cmd, 'install', req.strip()])
 
 def run_gptify(repo_path):
 
