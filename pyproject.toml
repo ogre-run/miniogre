@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "miniogre"
-version = "0.5.0-alpha"
+version = "0.5.0"
 description = "miniogre: from source code to reproducible environment, in seconds."
 readme = "README.md"
 authors = ["Wilder Lopes <wilder@ogre.run>"]
@@ -23,7 +23,7 @@ mistralai = "^0.1.3"
 autopep8 = "^2.0.4"
 cyclonedx-py = "^1.0.1"
 pip-licenses = "^4.3.4"
-gptify = "^0.1.0"
+gptify = "0.3.2"
 
 [tool.poetry.dev-dependencies]
 
