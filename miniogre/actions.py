@@ -33,7 +33,7 @@ def cleaning_requirements_emoji():
     print(emoji.emojize(':cooking: Refining...'))
 
 def generate_context_emoji():
-    print(emoji.emojize(':file_cabinet: Generating context...'))
+    print(emoji.emojize(':magnifying_glass_tilted_left: Generating context...'))
 
 def readme_emoji():
     print(emoji.emojize(':notebook: Generating new README.md...'))
@@ -252,10 +252,10 @@ def extract_requirements_groq(contents):
 
 def clean_requirements(provider, requirements):
     cleaning_requirements_emoji()
-    if provider == 'ollama':
-        res = clean_requirements_ollama(requirements)
     if provider == 'openai':
         res = clean_requirements_openai(requirements)
+    elif provider == 'ollama':
+        res = clean_requirements_ollama(requirements)
     elif provider == 'octoai':
         res = clean_requirements_octoai(requirements)
     elif provider == 'groq':
@@ -357,8 +357,11 @@ def save_requirements(requirements, ogre_dir_path):
 
 def rewrite_readme(provider, readme):
     readme_emoji()
+    
     if provider == 'openai':
         res = rewrite_readme_openai(readme)
+    elif provider == 'ollama':
+        res = rewrite_readme_ollama(readme)
     elif provider == 'octoai':
         res = rewrite_readme_octoai(readme)
     elif provider == 'groq':
@@ -389,6 +392,23 @@ def rewrite_readme_openai(readme):
 
     return new_readme
 
+def rewrite_readme_ollama(readme):
+    model = os.getenv('OLLAMA_MODEL', OLLAMA_MODEL)
+    prompt = os.getenv('REWRITE_README_PROMPT', REWRITE_README_PROMPT)
+    api_server = os.getenv('OLLAMA_API_SERVER', OLLAMA_API_SERVER)
+    # print(f"{api_server=} {model=} {prompt=}")
+    client = OpenAI(base_url=api_server, api_key='ollama')
+    completion = client.chat.completions.create(
+                  model=model,
+                  messages=[
+                      {"role": "system", "content": prompt},
+                      {"role": "user", "content": readme}
+                  ]
+              )
+    new_readme = completion.choices[0].message.content
+
+    return new_readme
+
 def rewrite_readme_octoai(readme):
     raise NotImplementedError("rewrite_readme_octoai is not implemented.")
 
@@ -408,9 +428,9 @@ def rewrite_readme_mistral(readme):
         model=model,
         messages=messages,
     )
-    requirements = chat_response.choices[0].message.content
+    new_readme = chat_response.choices[0].message.content
 
-    return requirements
+    return new_readme
 
 def save_readme(readme, ogre_dir_path):
     readme_fullpath = os.path.join(ogre_dir_path, 'README.md')
