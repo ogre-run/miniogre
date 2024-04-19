@@ -1,3 +1,4 @@
+import importlib.metadata
 import os
 
 import typer
@@ -13,6 +14,18 @@ load_dotenv()
 project_path = os.getcwd()
 # prompt = os.getenv('OPENAI_SECRET_PROMPT', OPENAI_SECRET_PROMPT)
 # prompt_rewrite_readme = os.getenv('PROMPT_REWRITE_README')
+
+
+@app.command()
+def version():
+    """
+    Display version
+    """
+    version_string = importlib.metadata.version('miniogre')
+    print("{}".format(version_string))
+
+    return 0
+
 
 @app.command()
 def readme(provider: str = "openai", limit_source_files: int = 1):
@@ -51,7 +64,7 @@ def run(
     verbose: bool = False,
 ):
     """
-    Run miniogre
+    Run full miniogre pipeline
     """
 
     display_figlet()
