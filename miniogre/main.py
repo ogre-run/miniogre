@@ -12,9 +12,6 @@ app = typer.Typer()
 load_dotenv()
 
 project_path = os.getcwd()
-# prompt = os.getenv('OPENAI_SECRET_PROMPT', OPENAI_SECRET_PROMPT)
-# prompt_rewrite_readme = os.getenv('PROMPT_REWRITE_README')
-
 
 @app.command()
 def version():
@@ -26,9 +23,8 @@ def version():
 
     return 0
 
-
 @app.command()
-def readme(provider: str = "openai", limit_source_files: int = 1):
+def readme(provider: str = "openai"):
     """
     Rewrite readme
     """
@@ -36,21 +32,13 @@ def readme(provider: str = "openai", limit_source_files: int = 1):
     display_figlet()
     starting_emoji()
 
-    # files = list_files(project_path)
-    # extensions = get_extensions(files)
-    # counts = count_extensions(extensions)
-    # most_ext = determine_most_ext(counts)
-    # readme_path = find_readme(project_path)
-    # readme_contents = read_file_contents(readme_path)
     ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv("OGRE_DIR", OGRE_DIR)))
     context_contents = run_gptify(os.getcwd())
     new_readme = rewrite_readme(provider, context_contents)
     readme_path = save_readme(new_readme, ogre_dir_path)
-    # cleanup()
     end_emoji()
 
     return 0
-
 
 @app.command()
 def run(
@@ -62,6 +50,7 @@ def run(
     sbom_format: str = "pip-licenses",
     no_container: bool = False,
     verbose: bool = False,
+    with_readme: bool = False
 ):
     """
     Run full miniogre pipeline
@@ -79,9 +68,11 @@ def run(
     extensions = get_extensions(files)
     counts = count_extensions(extensions)
     most_ext = determine_most_ext(counts)
-    readme_path = find_readme(project_path)
-    readme_contents = read_file_contents(readme_path)
     ogre_dir_path = config_ogre_dir(os.path.join(project_path, os.getenv("OGRE_DIR", OGRE_DIR)))
+    if with_readme:
+        context_contents = run_gptify(os.getcwd())
+        new_readme = rewrite_readme(provider, context_contents)
+        readme_path = save_readme(new_readme, ogre_dir_path)
     generate_requirements = config_requirements(project_path, ogre_dir_path, force_requirements_generation)
     local_requirements = extract_requirements_from_code(project_path, most_ext, generate_requirements)
     final_requirements = clean_requirements(provider, local_requirements)
@@ -95,7 +86,6 @@ def run(
         )
         spin_up_container(project_name, project_path, port)
     end_emoji()
-
 
 if __name__ == "__main__":
     app()
