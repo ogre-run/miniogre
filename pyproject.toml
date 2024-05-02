@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "miniogre"
-version = "0.5.0"
+version = "0.6.0-alpha"
 description = "miniogre: from source code to reproducible environment, in seconds."
 readme = "README.md"
 authors = ["Wilder Lopes <wilder@ogre.run>"]
@@ -16,7 +16,7 @@ openai = "1.21.2"
 emoji = "^2.10.1"
 pyfiglet = "^1.0.2"
 rich = "^13.7.0"
-groq = "^0.3.0"
+groq = "0.5.0"
 yaspin = "^3.0.1"
 octoai-sdk = "^0.9.0"
 mistralai = "^0.1.3"
