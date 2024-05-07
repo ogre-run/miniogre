@@ -49,7 +49,7 @@ def readme(provider: str = "openai"):
 def run(
     provider: str = "openai",
     baseimage: str = "auto",
-    port: str = "8001",
+    port_map: str = "8001:8001",
     dry: bool = False,
     force_requirements_generation: bool = True,
     sbom_format: str = "pip-licenses",
@@ -95,12 +95,12 @@ def run(
         build_docker_image(
             os.path.join(ogre_dir_path, "Dockerfile"), project_name, verbose
         )
-        spin_up_container(project_name, project_path, port)
+        spin_up_container(project_name, project_path, port_map)
     end_emoji()
 
 
 @app.command()
-def spinup(port: str = "8001"):
+def spinup(port_map: str = "8001:8001"):
     """
     Spin up container if image was previously built with `run`
     """
@@ -109,7 +109,7 @@ def spinup(port: str = "8001"):
     starting_emoji()
 
     project_name = os.path.basename(project_path)
-    spin_up_container(project_name, project_path, port)
+    spin_up_container(project_name, project_path, port_map)
 
     end_emoji()
 

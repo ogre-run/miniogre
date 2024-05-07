@@ -5,7 +5,7 @@ import subprocess
 
 import emoji
 from groq import Groq
-#from groq.cloud.core import Completion
+# from groq.cloud.core import Completion
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
 from octoai.client import Client as OctoAiClient
@@ -269,7 +269,7 @@ def extract_requirements_octoai(contents):
     return requirements
 
 
-#def extract_requirements_groq(contents):
+# def extract_requirements_groq(contents):
 #    prompt = os.getenv("GROQ_SECRET_PROMPT", GROQ_SECRET_PROMPT)
 #    with Completion() as completion:
 #        full_prompt = prompt + " " + contents
@@ -480,9 +480,7 @@ def rewrite_readme_octoai(readme):
 
 def rewrite_readme_groq(readme):
     model = os.getenv("GROQ_MODEL", GROQ_MODEL)
-    prompt = os.getenv(
-        "REWRITE_README_PROMPT", REWRITE_README_PROMPT
-    )
+    prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
 
     client = Groq(
         api_key=os.environ.get("GROQ_API_KEY"),
@@ -497,8 +495,9 @@ def rewrite_readme_groq(readme):
     )
 
     response = chat_completion.choices[0].message.content
-    
+
     return response
+
 
 def rewrite_readme_mistral(readme):
     model = os.getenv("MISTRAL_MODEL", MISTRAL_MODEL)
@@ -564,7 +563,7 @@ def build_docker_image(dockerfile, image_name, verbose=False):
     return out
 
 
-def spin_up_container(image_name, project_path, port):
+def spin_up_container(image_name, project_path, port_map):
     # spin up container
     spinup_emoji()
 
@@ -573,8 +572,8 @@ def spin_up_container(image_name, project_path, port):
     image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
     # cmd = "uv venv; source .venv/bin/activate; cat ./{}/requirements.txt | xargs -L 1 uv pip install; exit 0;"
     # cmd = "cat ./ogre_dir/requirements.txt | xargs -L 1 uv pip install; exit 0"
-    spin_up_cmd = "docker run -it --rm -v {}:/opt/{} -p {}:{} --name {} {}".format(
-        project_path, project_name, port, port, container_name, image_name
+    spin_up_cmd = "docker run -it --rm -v {}:/opt/{} -p {} --name {} {}".format(
+        project_path, project_name, port_map, container_name, image_name
     )
 
     print("   spin up command = {}".format(spin_up_cmd))
