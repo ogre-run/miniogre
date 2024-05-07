@@ -55,6 +55,7 @@ def run(
     sbom_format: str = "pip-licenses",
     no_container: bool = False,
     verbose: bool = False,
+    cache: bool = False,
     with_readme: bool = False,
 ):
     """
@@ -93,7 +94,7 @@ def run(
     create_sbom(project_name, project_path, sbom_format, verbose)
     if no_container == False:
         build_docker_image(
-            os.path.join(ogre_dir_path, "Dockerfile"), project_name, verbose
+            os.path.join(ogre_dir_path, "Dockerfile"), project_name, verbose, cache
         )
         spin_up_container(project_name, project_path, port_map)
     end_emoji()

@@ -524,7 +524,7 @@ def save_readme(readme, ogre_dir_path):
     return readme_fullpath
 
 
-def build_docker_image(dockerfile, image_name, verbose=False):
+def build_docker_image(dockerfile, image_name, verbose=False, cache=False):
     # build docker image
 
     platform_name = "linux/{}".format(platform.machine())
@@ -541,8 +541,13 @@ def build_docker_image(dockerfile, image_name, verbose=False):
         stderr = subprocess.PIPE
         progress = "auto"
 
-    build_cmd = "DOCKER_BUILDKIT=1 docker buildx build --no-cache --load --progress={} --platform {} -t {} -f {} .".format(
-        progress, platform_name, image_name, dockerfile
+    if cache:
+        cache_option = ""
+    else:
+        cache_option = "--no-cache"
+
+    build_cmd = "DOCKER_BUILDKIT=1 docker buildx build {} --load --progress={} --platform {} -t {} -f {} .".format(
+        cache_option, progress, platform_name, image_name, dockerfile
     )
     print("   build command = {}".format(build_cmd))
 
