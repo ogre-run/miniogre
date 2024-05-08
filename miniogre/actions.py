@@ -2,7 +2,7 @@ import ast
 import os
 import platform
 import subprocess
-
+import tiktoken
 import emoji
 from groq import Groq
 # from groq.cloud.core import Completion
@@ -415,6 +415,17 @@ def save_requirements(requirements, ogre_dir_path):
     with open(requirements_fullpath, "w") as f:
         f.write(requirements)
     return requirements_fullpath
+
+
+def count_tokens(string) -> int:
+    from importlib.resources import files
+    tiktoken_cache_dir = str(files('miniogre').joinpath('encodings'))
+    os.environ["TIKTOKEN_CACHE_DIR"] = tiktoken_cache_dir
+    cache_key = "9b5ad71b2ce5302211f9c61530b329a4922fc6a4" # cl100k_base
+    assert os.path.exists(os.path.join(tiktoken_cache_dir, cache_key))
+    encoding = tiktoken.get_encoding("cl100k_base")
+    num_tokens = len(encoding.encode(string))
+    return num_tokens
 
 
 def rewrite_readme(provider, readme):

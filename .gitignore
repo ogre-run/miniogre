@@ -1,4 +1,8 @@
 *__pycache__*
+._*
+_*
+.DS*
+*.bkp
 env
 dist
 test

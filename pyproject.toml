@@ -4,7 +4,9 @@ version = "0.6.0"
 description = "miniogre: from source code to reproducible environment, in seconds."
 readme = "README.md"
 authors = ["Wilder Lopes <wilder@ogre.run>"]
-include = [".env"]
+include = [
+    { path = "miniogre/encodings", format = ["sdist", "wheel"] }
+]
 homepage = "https://github.com/ogre-run/miniogre"
 
 [tool.poetry.dependencies]
@@ -24,6 +26,7 @@ autopep8 = "^2.0.4"
 cyclonedx-py = "^1.0.1"
 pip-licenses = "^4.3.4"
 gptify = "0.3.2"
+tiktoken = "0.6.0"
 
 [tool.poetry.dev-dependencies]
 
