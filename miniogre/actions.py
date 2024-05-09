@@ -4,6 +4,7 @@ import platform
 import subprocess
 import tiktoken
 import emoji
+import google.generativeai as googleai
 from groq import Groq
 # from groq.cloud.core import Completion
 from mistralai.client import MistralClient
@@ -288,6 +289,8 @@ def clean_requirements(provider, requirements):
     cleaning_requirements_emoji()
     if provider == "openai":
         res = clean_requirements_openai(requirements)
+    if provider == "gemini":
+        res = clean_requirements_gemini(requirements)
     elif provider == "ollama":
         res = clean_requirements_ollama(requirements)
     elif provider == "octoai":
@@ -299,14 +302,13 @@ def clean_requirements(provider, requirements):
     return res
 
 
-def clean_requirements_ollama(requirements):
-    model = os.getenv("OLLAMA_MODEL", OLLAMA_MODEL)
+def clean_requirements_openai(requirements):
+    model = os.getenv("OPENAI_MODEL", OPENAI_MODEL)
     prompt = os.getenv(
         "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
     )
-    api_server = os.getenv("OLLAMA_API_SERVER", OLLAMA_API_SERVER)
-    # print(f"{api_server=} {model=} {prompt=}")
-    client = OpenAI(base_url=api_server, api_key="ollama")
+    # print(f"{model=} {prompt=}")
+    client = OpenAI()
     completion = client.chat.completions.create(
         model=model,
         messages=[
@@ -315,17 +317,33 @@ def clean_requirements_ollama(requirements):
         ],
     )
     requirements = completion.choices[0].message.content
-
+    # print(f"{requirements=}")
     return requirements
 
 
-def clean_requirements_openai(requirements):
-    model = os.getenv("OPENAI_MODEL", OPENAI_MODEL)
+def clean_requirements_gemini(requirements):
+    model = os.getenv("GEMINI_MODEL", GEMINI_MODEL)
     prompt = os.getenv(
         "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
     )
-    # print(f"{model=} {prompt=}")
-    client = OpenAI()
+    # print(f"{model=}")
+    client = googleai.GenerativeModel(model)
+    full_prompt = f"{prompt}\n---\n{requirements}"
+    # print(f"{full_prompt=}")
+    response = client.generate_content(full_prompt)
+    requirements = response.text
+    # print(f"{requirements=}")
+    return requirements
+
+
+def clean_requirements_ollama(requirements):
+    model = os.getenv("OLLAMA_MODEL", OLLAMA_MODEL)
+    prompt = os.getenv(
+        "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
+    )
+    api_server = os.getenv("OLLAMA_API_SERVER", OLLAMA_API_SERVER)
+    # print(f"{api_server=} {model=} {prompt=}")
+    client = OpenAI(base_url=api_server, api_key="ollama")
     completion = client.chat.completions.create(
         model=model,
         messages=[
@@ -433,6 +451,8 @@ def rewrite_readme(provider, readme):
 
     if provider == "openai":
         res = rewrite_readme_openai(readme)
+    elif provider == "gemini":
+        res = rewrite_readme_gemini(readme)
     elif provider == "ollama":
         res = rewrite_readme_ollama(readme)
     elif provider == "octoai":
@@ -447,11 +467,12 @@ def rewrite_readme(provider, readme):
 def rewrite_readme_openai(readme):
     model = os.getenv("OPENAI_MODEL", OPENAI_MODEL)
     prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
-    client = OpenAI()
+    # print(f"{model=} {prompt=}")
+    new_readme = ""
     if "OPENAI_API_KEY" not in os.environ:
         raise EnvironmentError("OPENAI_API_KEY environment variable not defined")
-
     try:
+        client = OpenAI()
         completion = client.chat.completions.create(
             model=model,
             messages=[
@@ -463,7 +484,23 @@ def rewrite_readme_openai(readme):
         new_readme = completion.choices[0].message.content
     except Exception as e:
         print(e)
+    return new_readme
 
+
+def rewrite_readme_gemini(readme):
+    model = os.getenv("GEMINI_MODEL", GEMINI_MODEL)
+    prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
+    full_prompt = f"{prompt}\n---\n{readme}"
+    # print(f"{model=} {full_prompt=}")
+    new_readme = ""
+    if "GOOGLE_API_KEY" not in os.environ:
+        raise EnvironmentError("GOOGLE_API_KEY environment variable not defined")
+    try:
+        client = googleai.GenerativeModel(model)
+        response = client.generate_content(full_prompt)
+        new_readme = response.text
+    except Exception as e:
+        print(e)
     return new_readme
 
 
@@ -472,16 +509,19 @@ def rewrite_readme_ollama(readme):
     prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
     api_server = os.getenv("OLLAMA_API_SERVER", OLLAMA_API_SERVER)
     # print(f"{api_server=} {model=} {prompt=}")
-    client = OpenAI(base_url=api_server, api_key="ollama")
-    completion = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": readme},
-        ],
-    )
-    new_readme = completion.choices[0].message.content
-
+    new_readme = ""
+    try:
+        client = OpenAI(base_url=api_server, api_key="ollama")
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": readme},
+            ],
+        )
+        new_readme = completion.choices[0].message.content
+    except Exception as e:
+        print(e)
     return new_readme
 
 
@@ -588,7 +628,7 @@ def spin_up_container(image_name, project_path, port_map):
     image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
     # cmd = "uv venv; source .venv/bin/activate; cat ./{}/requirements.txt | xargs -L 1 uv pip install; exit 0;"
     # cmd = "cat ./ogre_dir/requirements.txt | xargs -L 1 uv pip install; exit 0"
-    spin_up_cmd = "docker run -it --rm -v {}:/opt/{} -p {} --name {} {}".format(
+    spin_up_cmd = "docker run -it --rm -v {}:/opt/{} -p {} --name {} {} bash".format(
         project_path, project_name, port_map, container_name, image_name
     )
 

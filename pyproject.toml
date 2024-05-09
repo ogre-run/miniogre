@@ -27,6 +27,7 @@ cyclonedx-py = "^1.0.1"
 pip-licenses = "^4.3.4"
 gptify = "0.3.2"
 tiktoken = "0.6.0"
+google-generativeai = "0.5.2"
 
 [tool.poetry.dev-dependencies]
 
