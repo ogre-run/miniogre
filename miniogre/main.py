@@ -34,12 +34,11 @@ def readme(provider: str = "openai"):
     display_figlet()
     starting_emoji()
 
-    ogre_dir_path = config_ogre_dir(
-        os.path.join(project_path, os.getenv("OGRE_DIR", OGRE_DIR))
-    )
     context_contents = run_gptify(os.getcwd())
+    num_tokens = count_tokens(context_contents)
+    print("Total number of tokens: {}".format(num_tokens))
     new_readme = rewrite_readme(provider, context_contents)
-    readme_path = save_readme(new_readme, ogre_dir_path)
+    save_readme(new_readme, project_path)
     end_emoji()
 
     return 0
