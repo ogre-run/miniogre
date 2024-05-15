@@ -167,7 +167,7 @@ ALL_EXTENSIONS = [
 OGRE_DIR = "ogre_dir"
 OGRE_BASEIMAGE = "ogrerun/base:ubuntu22.04-{}"
 
-OPENAI_MODEL = "gpt-4-turbo"
+OPENAI_MODEL = "gpt-4o"
 OPENAI_SECRET_PROMPT = """You are a Python requirements generator.
 You should generate the contents of a Python requirements file (raw text only) taking into account the text sent by the user.
 The raw text sent by the user consists of a combination of the README file contents and the source code contents.
@@ -179,7 +179,7 @@ Note that some packages do not exist in the PyPi repository, they are only local
 Ignore the following Python packages: git, jittor, cuda, shihong, nvdiffrast: they do not exist on the PyPi repository.
 Your output should be a raw ASCII text file."""
 
-GEMINI_MODEL = "gemini-pro"
+GEMINI_MODEL = "gemini-1.0-pro"
 # GEMINI_SECRET_PROMPT = """You are a Python requirements generator.
 # You should generate the contents of a Python requirements file (raw text only) taking into account the text sent by the user.
 # The raw text sent by the user consists of a combination of the README file contents and the source code contents.
@@ -223,7 +223,7 @@ You are also a specialist in writing clear documentation (e.g README files) that
 Your task is to take a text input containing the current README and the code and use it to write an updated version of the README file.
 The README file should highlight the actual requirements that need to be installed."""
 
-#GROQ_MODEL = "mixtral-8x7b-32768"
+# GROQ_MODEL = "mixtral-8x7b-32768"
 GROQ_MODEL = "llama3-70b-8192"
 GROQ_SECRET_PROMPT = """You are a Python requirements generator.
 You should generate the contents of a Python requirements file (raw text only) taking into account the text sent by the user.
