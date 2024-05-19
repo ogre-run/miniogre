@@ -5,6 +5,8 @@ import subprocess
 import tiktoken
 import emoji
 import google.generativeai as googleai
+
+from string import Template
 from groq import Groq
 # from groq.cloud.core import Completion
 from mistralai.client import MistralClient
@@ -48,6 +50,10 @@ def generate_context_emoji():
 
 def readme_emoji():
     print(emoji.emojize(":notebook: Generating new README.md..."))
+
+
+def eval_emoji():
+    print(emoji.emojize(":magnifying_glass_tilted_left: Evaluating..."))
 
 
 def list_files(project_path):
@@ -736,3 +742,136 @@ def cleanup():
     """
     if os.path.exists("ogre_dir/gptify_output.txt"):
         os.remove("ogre_dir/gptify_output.txt")
+
+
+def read_readme(repo_path):
+    # List of possible README file names (without specific case)
+    possible_names = ["README.md", "README.txt", "README.rst", "README.adoc", "README"]
+
+    # Get all files in the directory
+    files_in_directory = os.listdir(repo_path)
+    
+    # Check for each possible README name in a case-insensitive manner
+    for name in possible_names:
+        for file in files_in_directory:
+            if file.lower() == name.lower():
+                readme_path = os.path.join(repo_path, file)
+                with open(readme_path, 'r', encoding='utf-8') as file:
+                    content = file.read()
+                    return content
+
+    # If no README file is found, raise an exception
+    raise FileNotFoundError("No README file found in the repository.")
+
+
+def evaluate_readme(provider, readme, verbose):
+    eval_emoji()
+    if provider == "openai":
+        return evaluate_readme_openai(readme, verbose)
+    elif provider == "gemini":
+        return evaluate_readme_gemini(readme, verbose)
+    elif provider == "ollama":
+        return evaluate_readme_ollama(readme, verbose)
+    elif provider == "groq":
+        return evaluate_readme_groq(readme, verbose)
+    elif provider == "octoai":
+        # return evaluate_readme_octoai(readme, verbose)
+        raise NotImplementedError("This provider is not yet implemented")
+    elif provider == "mistral":
+        # res = evaluate_readme_mistral(readme, verbose)
+        raise NotImplementedError("This provider is not yet implemented")
+    else:
+        raise ValueError("Invalid provider")
+
+
+def evaluate_readme_openai(readme, verbose):
+    model = os.getenv("OPENAI_MODEL", OPENAI_MODEL)
+    system_prompt = os.getenv("README_EVAL_SYSTEM_PROMPT", README_EVAL_SYSTEM_PROMPT)
+    user_prompt_template = Template(os.getenv("README_EVAL_USER_PROMPT", README_EVAL_USER_PROMPT))
+    user_prompt = user_prompt_template.substitute(README=readme)
+    if verbose: print(f"\n{model=}\n{system_prompt=}\n{user_prompt=}\n")
+    score = "0"
+    if "OPENAI_API_KEY" not in os.environ:
+        raise EnvironmentError("OPENAI_API_KEY environment variable not defined")
+    try:
+        client = OpenAI()
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        )
+        score = completion.choices[0].message.content
+        if verbose: print(f"\n{score=}\n")
+    except Exception as e:
+        print(e)
+    return score
+
+
+def evaluate_readme_gemini(readme, verbose):
+    model = os.getenv("GEMINI_MODEL", GEMINI_MODEL)
+    prompt_template = Template(os.getenv("README_EVAL_PROMPT", README_EVAL_PROMPT))
+    prompt = prompt_template.substitute(README=readme)
+    if verbose: print(f"\n{model=}\n{prompt=}\n")
+    score = "0"
+    if "GEMINI_API_KEY" not in os.environ:
+        raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
+    try:
+        client = googleai.GenerativeModel(model)
+        response = client.generate_content(prompt)
+        score = response.text
+        if verbose: print(f"\n{score=}\n")
+    except Exception as e:
+            print(e)
+    return score
+
+
+def evaluate_readme_ollama(readme, verbose):
+    model = os.getenv("OLLAMA_MODEL", OLLAMA_MODEL)
+    api_server = os.getenv("OLLAMA_API_SERVER", OLLAMA_API_SERVER)
+    system_prompt = os.getenv("README_EVAL_SYSTEM_PROMPT", README_EVAL_SYSTEM_PROMPT)
+    user_prompt_template = Template(os.getenv("README_EVAL_USER_PROMPT", README_EVAL_USER_PROMPT))
+    user_prompt = user_prompt_template.substitute(README=readme)
+    if verbose: print(f"\n{model=}\n{api_server=}\n{system_prompt=}\n{user_prompt=}\n")
+    score = "0"
+    try:
+        client = OpenAI(base_url=api_server, api_key="ollama")
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        )
+        score = completion.choices[0].message.content
+        if verbose: print(f"\n{score=}\n")
+    except Exception as e:
+        print(e)
+    return score
+
+
+def evaluate_readme_groq(readme, verbose):
+    model = os.getenv("GROQ_MODEL", GROQ_MODEL)
+    prompt_template = Template(os.getenv("README_EVAL_PROMPT", README_EVAL_PROMPT))
+    prompt = prompt_template.substitute(README=readme)
+    if verbose: print(f"\n{model=}\n{prompt=}\n")
+    score = "0"
+    if "GROQ_API_KEY" not in os.environ:
+        raise EnvironmentError("GROQ_API_KEY environment variable not defined")
+    try:
+        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            model=model,
+        )
+        score = chat_completion.choices[0].message.content
+        if verbose: print(f"\n{score=}\n")
+    except Exception as e:
+        print(e)
+    return score
