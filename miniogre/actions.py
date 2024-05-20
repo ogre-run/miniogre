@@ -797,6 +797,7 @@ def evaluate_readme_openai(readme, verbose):
         client = OpenAI()
         completion = client.chat.completions.create(
             model=model,
+            seed=0,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
