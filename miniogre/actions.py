@@ -870,6 +870,7 @@ def evaluate_readme_groq(readme, verbose):
                 }
             ],
             model=model,
+            seed=0
         )
         score = chat_completion.choices[0].message.content
         if verbose: print(f"\n{score=}\n")
