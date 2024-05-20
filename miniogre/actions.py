@@ -840,6 +840,7 @@ def evaluate_readme_ollama(readme, verbose):
         client = OpenAI(base_url=api_server, api_key="ollama")
         completion = client.chat.completions.create(
             model=model,
+            seed=0,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
