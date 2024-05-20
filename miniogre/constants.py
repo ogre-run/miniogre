@@ -179,7 +179,7 @@ Note that some packages do not exist in the PyPi repository, they are only local
 Ignore the following Python packages: git, jittor, cuda, shihong, nvdiffrast: they do not exist on the PyPi repository.
 Your output should be a raw ASCII text file."""
 
-GEMINI_MODEL = "gemini-1.0-pro"
+GEMINI_MODEL = "gemini-1.5-flash-latest"
 # GEMINI_SECRET_PROMPT = """You are a Python requirements generator.
 # You should generate the contents of a Python requirements file (raw text only) taking into account the text sent by the user.
 # The raw text sent by the user consists of a combination of the README file contents and the source code contents.
@@ -268,3 +268,61 @@ If any of the packages in the updated list is represented by a name under which 
 For example, the library `PIL` is not available under that name in PyPi, but `Pillow` is.
 No explanation notes on your reasoning are allowed. Nobody wants to know which packages were removed. Your response must contain only the list of packages to be installed.
 Remove any blank lines."""
+
+README_EVAL_PROMPT = """
+As a GitHub README quality expert, I evaluate READMEs on a scale from 1 to 10 based on their adherence to mandatory and optional criteria. The lowest scores are assigned to READMEs that miss essential elements, while the highest scores are given to those that not only fulfill the mandatory prerequisites but also incorporate optional elements to enhance clarity and user engagement.
+
+Mandatory Prerequisites for a High-Quality README:
+
+Title: The project name should be clear and informative.
+Description: A concise explanation of the project or plugin, highlighting its functionality without going into excessive technical detail.
+Installation Guide: Comprehensive instructions on installing the project, including necessary commands and potential installation issues.
+Usage Guide: Immediate and clear instructions on how to use the project after installation.
+Prerequisites: A list of necessary conditions for using the project, such as specific software versions or dependencies.
+License: Clear information about the permissible uses of the project, setting boundaries as specified by the owner.
+
+Optional Prerequisites that Increase a README's Score:
+
+Visual Aids (Images/GIFs/Table/Video): Incorporates images, tables, Video or GIFs to better explain the features and functionality of the project.
+Roadmap: Provides a future outlook for the project, including potential milestones and dates.
+Contributors: Information about the contributors, if any, including ways to contact them or the project owner.
+Badges: Quick visual information about the project such as status (active, archived), license, version, and build status.
+Links to Additional Resources: Links to additional documentation, tutorials, or community forums that are relevant to the project.
+
+Here is the content of the README file to be evaluated:
+```README
+$README
+```
+
+I want to get only the score without explanations, only a number between 1 and 10.
+"""
+
+README_EVAL_SYSTEM_PROMPT = """
+As a GitHub README quality expert, I evaluate READMEs on a scale from 1 to 10 based on their adherence to mandatory and optional criteria. The lowest scores are assigned to READMEs that miss essential elements, while the highest scores are given to those that not only fulfill the mandatory prerequisites but also incorporate optional elements to enhance clarity and user engagement.
+
+Mandatory Prerequisites for a High-Quality README:
+
+Title: The project name should be clear and informative.
+Description: A concise explanation of the project or plugin, highlighting its functionality without going into excessive technical detail.
+Installation Guide: Comprehensive instructions on installing the project, including necessary commands and potential installation issues.
+Usage Guide: Immediate and clear instructions on how to use the project after installation.
+Prerequisites: A list of necessary conditions for using the project, such as specific software versions or dependencies.
+License: Clear information about the permissible uses of the project, setting boundaries as specified by the owner.
+
+Optional Prerequisites that Increase a README's Score:
+
+Visual Aids (Images/GIFs/Table/Video): Incorporates images, tables, Video or GIFs to better explain the features and functionality of the project.
+Roadmap: Provides a future outlook for the project, including potential milestones and dates.
+Contributors: Information about the contributors, if any, including ways to contact them or the project owner.
+Badges: Quick visual information about the project such as status (active, archived), license, version, and build status.
+Links to Additional Resources: Links to additional documentation, tutorials, or community forums that are relevant to the project.
+
+I want to get only the score without explanations, only a number between 1 and 10.
+"""
+
+README_EVAL_USER_PROMPT = """
+Here is the content of the README file to be evaluated:
+```README
+$README
+```
+"""

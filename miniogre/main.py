@@ -1,7 +1,7 @@
 import importlib.metadata
 import os
-
 import typer
+
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -43,6 +43,24 @@ def readme(provider: str = "openai"):
     print("Total number of tokens: {}".format(num_tokens))
     new_readme = rewrite_readme(provider, context_contents)
     readme_path = save_readme(new_readme, ogre_dir_path)
+    end_emoji()
+
+    return 0
+
+@app.command()
+def eval(provider: str = "openai", verbose: bool = False):
+    """
+    Determine the reproducibility score of the repository
+    """
+
+    display_figlet()
+    starting_emoji()
+
+    # Start by evaluating the README quality
+    readme = read_readme(os.getcwd())
+    readme_score = evaluate_readme(provider, readme, verbose)
+    print(emoji.emojize(":upside-down_face: Readme score: {}".format(readme_score)))
+
     end_emoji()
 
     return 0
