@@ -336,7 +336,7 @@ def clean_requirements_gemini(requirements):
     client = googleai.GenerativeModel(model)
     full_prompt = f"{prompt}\n---\n{requirements}"
     # print(f"{full_prompt=}")
-    response = client.generate_content(full_prompt)
+    response = client.generate_content(full_prompt, request_options={"timeout": 1000})
     requirements = response.text
     # print(f"{requirements=}")
     return requirements
