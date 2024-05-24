@@ -2,11 +2,11 @@ import ast
 import os
 import platform
 import subprocess
-import tiktoken
+from string import Template
+
 import emoji
 import google.generativeai as googleai
-
-from string import Template
+import tiktoken
 from groq import Groq
 # from groq.cloud.core import Completion
 from mistralai.client import MistralClient
@@ -443,9 +443,10 @@ def save_requirements(requirements, ogre_dir_path):
 
 def count_tokens(string) -> int:
     from importlib.resources import files
-    tiktoken_cache_dir = str(files('miniogre').joinpath('encodings'))
+
+    tiktoken_cache_dir = str(files("miniogre").joinpath("encodings"))
     os.environ["TIKTOKEN_CACHE_DIR"] = tiktoken_cache_dir
-    cache_key = "9b5ad71b2ce5302211f9c61530b329a4922fc6a4" # cl100k_base
+    cache_key = "9b5ad71b2ce5302211f9c61530b329a4922fc6a4"  # cl100k_base
     assert os.path.exists(os.path.join(tiktoken_cache_dir, cache_key))
     encoding = tiktoken.get_encoding("cl100k_base")
     num_tokens = len(encoding.encode(string))
@@ -499,8 +500,8 @@ def rewrite_readme_gemini(readme):
     full_prompt = f"{prompt}\n---\n{readme}"
     # print(f"{model=} {full_prompt=}")
     new_readme = ""
-    if "GOOGLE_API_KEY" not in os.environ:
-        raise EnvironmentError("GOOGLE_API_KEY environment variable not defined")
+    if "GEMINI_API_KEY" not in os.environ:
+        raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
     try:
         client = googleai.GenerativeModel(model)
         response = client.generate_content(full_prompt)
@@ -750,13 +751,13 @@ def read_readme(repo_path):
 
     # Get all files in the directory
     files_in_directory = os.listdir(repo_path)
-    
+
     # Check for each possible README name in a case-insensitive manner
     for name in possible_names:
         for file in files_in_directory:
             if file.lower() == name.lower():
                 readme_path = os.path.join(repo_path, file)
-                with open(readme_path, 'r', encoding='utf-8') as file:
+                with open(readme_path, "r", encoding="utf-8") as file:
                     content = file.read()
                     return content
 
@@ -787,9 +788,12 @@ def evaluate_readme(provider, readme, verbose):
 def evaluate_readme_openai(readme, verbose):
     model = os.getenv("OPENAI_MODEL", OPENAI_MODEL)
     system_prompt = os.getenv("README_EVAL_SYSTEM_PROMPT", README_EVAL_SYSTEM_PROMPT)
-    user_prompt_template = Template(os.getenv("README_EVAL_USER_PROMPT", README_EVAL_USER_PROMPT))
+    user_prompt_template = Template(
+        os.getenv("README_EVAL_USER_PROMPT", README_EVAL_USER_PROMPT)
+    )
     user_prompt = user_prompt_template.substitute(README=readme)
-    if verbose: print(f"\n{model=}\n{system_prompt=}\n{user_prompt=}\n")
+    if verbose:
+        print(f"\n{model=}\n{system_prompt=}\n{user_prompt=}\n")
     score = "0"
     if "OPENAI_API_KEY" not in os.environ:
         raise EnvironmentError("OPENAI_API_KEY environment variable not defined")
@@ -804,7 +808,8 @@ def evaluate_readme_openai(readme, verbose):
             ],
         )
         score = completion.choices[0].message.content
-        if verbose: print(f"\n{score=}\n")
+        if verbose:
+            print(f"\n{score=}\n")
     except Exception as e:
         print(e)
     return score
@@ -814,7 +819,8 @@ def evaluate_readme_gemini(readme, verbose):
     model = os.getenv("GEMINI_MODEL", GEMINI_MODEL)
     prompt_template = Template(os.getenv("README_EVAL_PROMPT", README_EVAL_PROMPT))
     prompt = prompt_template.substitute(README=readme)
-    if verbose: print(f"\n{model=}\n{prompt=}\n")
+    if verbose:
+        print(f"\n{model=}\n{prompt=}\n")
     score = "0"
     if "GEMINI_API_KEY" not in os.environ:
         raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
@@ -822,9 +828,10 @@ def evaluate_readme_gemini(readme, verbose):
         client = googleai.GenerativeModel(model)
         response = client.generate_content(prompt)
         score = response.text
-        if verbose: print(f"\n{score=}\n")
+        if verbose:
+            print(f"\n{score=}\n")
     except Exception as e:
-            print(e)
+        print(e)
     return score
 
 
@@ -832,9 +839,12 @@ def evaluate_readme_ollama(readme, verbose):
     model = os.getenv("OLLAMA_MODEL", OLLAMA_MODEL)
     api_server = os.getenv("OLLAMA_API_SERVER", OLLAMA_API_SERVER)
     system_prompt = os.getenv("README_EVAL_SYSTEM_PROMPT", README_EVAL_SYSTEM_PROMPT)
-    user_prompt_template = Template(os.getenv("README_EVAL_USER_PROMPT", README_EVAL_USER_PROMPT))
+    user_prompt_template = Template(
+        os.getenv("README_EVAL_USER_PROMPT", README_EVAL_USER_PROMPT)
+    )
     user_prompt = user_prompt_template.substitute(README=readme)
-    if verbose: print(f"\n{model=}\n{api_server=}\n{system_prompt=}\n{user_prompt=}\n")
+    if verbose:
+        print(f"\n{model=}\n{api_server=}\n{system_prompt=}\n{user_prompt=}\n")
     score = "0"
     try:
         client = OpenAI(base_url=api_server, api_key="ollama")
@@ -847,7 +857,8 @@ def evaluate_readme_ollama(readme, verbose):
             ],
         )
         score = completion.choices[0].message.content
-        if verbose: print(f"\n{score=}\n")
+        if verbose:
+            print(f"\n{score=}\n")
     except Exception as e:
         print(e)
     return score
@@ -857,7 +868,8 @@ def evaluate_readme_groq(readme, verbose):
     model = os.getenv("GROQ_MODEL", GROQ_MODEL)
     prompt_template = Template(os.getenv("README_EVAL_PROMPT", README_EVAL_PROMPT))
     prompt = prompt_template.substitute(README=readme)
-    if verbose: print(f"\n{model=}\n{prompt=}\n")
+    if verbose:
+        print(f"\n{model=}\n{prompt=}\n")
     score = "0"
     if "GROQ_API_KEY" not in os.environ:
         raise EnvironmentError("GROQ_API_KEY environment variable not defined")
@@ -871,10 +883,11 @@ def evaluate_readme_groq(readme, verbose):
                 }
             ],
             model=model,
-            seed=0
+            seed=0,
         )
         score = chat_completion.choices[0].message.content
-        if verbose: print(f"\n{score=}\n")
+        if verbose:
+            print(f"\n{score=}\n")
     except Exception as e:
         print(e)
     return score
