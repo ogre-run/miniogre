@@ -1,7 +1,7 @@
 import importlib.metadata
 import os
-import typer
 
+import typer
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -46,6 +46,7 @@ def readme(provider: str = "openai"):
     end_emoji()
 
     return 0
+
 
 @app.command()
 def eval(provider: str = "openai", verbose: bool = False):
@@ -92,6 +93,7 @@ def run(
     project_name = os.path.basename(project_path)
 
     files = list_files(project_path)
+    ipynb_to_py_list = ipynb_to_py(project_path, verbose)
     extensions = get_extensions(files)
     counts = count_extensions(extensions)
     most_ext = determine_most_ext(counts)
@@ -113,6 +115,7 @@ def run(
     config_bashrc(project_path, ogre_dir_path, None, None, None)
     config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
     create_sbom(project_name, project_path, sbom_format, verbose)
+    cleanup_converted_py(ipynb_to_py_list)
     if no_container == False:
         build_docker_image(
             os.path.join(ogre_dir_path, "Dockerfile"), project_name, verbose, cache

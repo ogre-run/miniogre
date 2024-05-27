@@ -1,4 +1,5 @@
 import ast
+import glob
 import os
 import platform
 import subprocess
@@ -84,6 +85,59 @@ def count_extensions(extensions):
         else:
             counts[ext] = 1
     return counts
+
+
+def ipynb_to_py(project_path, verbose=False):
+    """
+    Convert ipynb files (jupyter notebooks) to python scripts.
+    """
+
+    ipynbfiles = []
+
+    pattern_ipynb = glob.glob(
+        os.path.join("{}".format(project_path), "**/", "*.ipynb"),
+        recursive=True,
+    )
+
+    if verbose:
+        stderr = None
+        progress = "plain"
+    else:
+        stderr = subprocess.PIPE
+        progress = "auto"
+
+    for filename in pattern_ipynb:
+        # subprocess to convert notebook to python
+        convert_cmd = 'jupyter nbconvert --to python "{}"'.format(filename)
+        p = subprocess.Popen(
+            convert_cmd, stdout=subprocess.PIPE, stderr=stderr, shell=True
+        )
+        (out, err) = p.communicate()
+        p_status = p.wait()
+
+        filename_py = filename[:-5] + "py"
+        ipynbfiles.append(filename_py)
+
+    return ipynbfiles
+
+
+def cleanup_converted_py(ipynb_to_py_list):
+    # Loop through the list and remove each file
+    if not ipynb_to_py_list:
+        print(
+            "There were no .ipynb files originally, so no .py files were generated. Nothing to clean up here."
+        )
+    else:
+        for file_path in ipynb_to_py_list:
+            try:
+                os.remove(file_path)
+                print(f"Removed: {file_path}")
+            except FileNotFoundError:
+                print(f"File not found: {file_path}. It can't be removed.")
+            except PermissionError:
+                print(f"Permission denied: {file_path}. It can't be removed.")
+            except Exception as e:
+                print(f"Error removing {file_path}: {e}")
 
 
 # Get most prevalent extension for code files
