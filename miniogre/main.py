@@ -104,14 +104,15 @@ def run(
         context_contents = run_gptify(os.getcwd())
         new_readme = rewrite_readme(provider, context_contents)
         readme_path = save_readme(new_readme, ogre_dir_path)
-    generate_requirements = config_requirements(
-        project_path, ogre_dir_path, force_requirements_generation
-    )
-    local_requirements = extract_requirements_from_code(
-        project_path, most_ext, generate_requirements
-    )
-    final_requirements = clean_requirements(provider, local_requirements)
-    requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)
+    if not dry:
+        generate_requirements = config_requirements(
+            project_path, ogre_dir_path, force_requirements_generation
+        )
+        local_requirements = extract_requirements_from_code(
+            project_path, most_ext, generate_requirements
+        )
+        final_requirements = clean_requirements(provider, local_requirements)
+        requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)
     config_bashrc(project_path, ogre_dir_path, None, None, None)
     config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
     create_sbom(project_name, project_path, sbom_format, verbose)
