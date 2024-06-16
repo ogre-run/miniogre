@@ -78,6 +78,7 @@ def run(
     no_container: bool = False,
     verbose: bool = False,
     cache: bool = False,
+    host_platform: str = None,
     with_readme: bool = False,
 ):
     """
@@ -119,7 +120,11 @@ def run(
     cleanup_converted_py(ipynb_to_py_list)
     if no_container == False:
         build_docker_image(
-            os.path.join(ogre_dir_path, "Dockerfile"), project_name, verbose, cache
+            os.path.join(ogre_dir_path, "Dockerfile"),
+            project_name,
+            host_platform,
+            verbose,
+            cache,
         )
         spin_up_container(project_name, project_path, port_map)
     end_emoji()

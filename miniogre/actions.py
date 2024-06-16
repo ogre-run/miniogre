@@ -636,10 +636,15 @@ def save_readme(readme, ogre_dir_path):
     return readme_fullpath
 
 
-def build_docker_image(dockerfile, image_name, verbose=False, cache=False):
+def build_docker_image(
+    dockerfile, image_name, host_platform=None, verbose=False, cache=False
+):
     # build docker image
 
-    platform_name = "linux/{}".format(platform.machine())
+    if host_platform == None:
+        platform_name = "linux/{}".format(platform.machine())
+    else:
+        platform_name = host_platform
     image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
 
     build_emoji()
