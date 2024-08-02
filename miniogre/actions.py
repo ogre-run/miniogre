@@ -349,8 +349,10 @@ def clean_requirements(provider, requirements):
     cleaning_requirements_emoji()
     if provider == "openai":
         res = clean_requirements_openai(requirements)
-    if provider == "gemini":
+    elif provider == "gemini":
         res = clean_requirements_gemini(requirements)
+    elif provider == "ogre":
+        res = clean_requirements_ogre(requirements)
     elif provider == "ollama":
         res = clean_requirements_ollama(requirements)
     elif provider == "octoai":
@@ -393,6 +395,26 @@ def clean_requirements_gemini(requirements):
     response = client.generate_content(full_prompt, request_options={"timeout": 1000})
     requirements = response.text
     # print(f"{requirements=}")
+    return requirements
+
+
+def clean_requirements_ogre(requirements):
+    model = os.getenv("OGRE_MODEL", OGRE_MODEL)
+    prompt = os.getenv(
+        "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
+    )
+    api_server = os.getenv("OGRE_API_SERVER", OGRE_API_SERVER)
+    # print(f"{api_server=} {model=} {prompt=}")
+    client = OpenAI(base_url=api_server, api_key="ollama")
+    completion = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": requirements},
+        ],
+    )
+    requirements = completion.choices[0].message.content
+
     return requirements
 
 
@@ -514,6 +536,8 @@ def rewrite_readme(provider, readme):
         res = rewrite_readme_openai(readme)
     elif provider == "gemini":
         res = rewrite_readme_gemini(readme)
+    elif provider == "ogre":
+        res = rewrite_readme_ogre(readme)
     elif provider == "ollama":
         res = rewrite_readme_ollama(readme)
     elif provider == "octoai":
@@ -560,6 +584,27 @@ def rewrite_readme_gemini(readme):
         client = googleai.GenerativeModel(model)
         response = client.generate_content(full_prompt)
         new_readme = response.text
+    except Exception as e:
+        print(e)
+    return new_readme
+
+
+def rewrite_readme_ogre(readme):
+    model = os.getenv("OGRE_MODEL", OGRE_MODEL)
+    prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
+    api_server = os.getenv("OGRE_API_SERVER", OGRE_API_SERVER)
+    # print(f"{api_server=} {model=} {prompt=}")
+    new_readme = ""
+    try:
+        client = OpenAI(base_url=api_server, api_key="ollama")
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": readme},
+            ],
+        )
+        new_readme = completion.choices[0].message.content
     except Exception as e:
         print(e)
     return new_readme

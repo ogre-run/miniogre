@@ -17,6 +17,18 @@ RUN cp ./ogre_dir/bashrc /etc/bash.bashrc
 RUN chmod a+rwx /etc/bash.bashrc
 """
 
+DOCKERFILE_BASEIMAGE = """
+ENV TZ=America/Chicago
+WORKDIR /opt/{}
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN apt-get update && apt-get install -y ttyd
+RUN pip install miniogre
+COPY ./ogre_dir .
+RUN mv ./bashrc /etc/bash.bashrc
+RUN chmod a+rwx /etc/bash.bashrc
+CMD ["ttyd", "-p 8008", "bash"]
+"""
+
 BASHRC = """
 _python_argcomplete() {
     local IFS=$'\013'
@@ -193,16 +205,9 @@ GEMINI_MODEL = "gemini-1.5-flash-latest"
 # OLLAMA_MODEL = "mistral:7b"
 OLLAMA_MODEL = "phi3"
 OLLAMA_API_SERVER = "http://localhost:11434/v1"
-# OLLAMA_SECRET_PROMPT = '''You are a Python requirements generator.
-# You should generate the contents of a Python requirements file (raw text only) taking into account the text sent by the user.
-# The raw text sent by the user consists of a combination of the README file contents and the source code contents.
-# You generate only the file contents as answer.
-# If the text sent by the user is invalid or is empty, just generate an empty content.
-# You should ignore the Python version 2 or 3.
-# The python package should not be included in the requirements file.
-# Note that some packages do not exist in the PyPi repository, they are only local, and thus shouldnt be added to the requirements.txt file.
-# Ignore the following Python packages: git, jittor, cuda, shihong, nvdiffrast: they do not exist on the PyPi repository.
-# Your output should be a raw ASCII text file.'''
+
+OGRE_MODEL = "llama3.1"
+OGRE_API_SERVER = "https://llm.ogre.run/v1"
 
 OCTOAI_MODEL = "mistral-7b-instruct-fp16"
 OCTOAI_SECRET_PROMPT = """You are a Python requirements generator.
