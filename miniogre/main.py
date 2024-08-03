@@ -169,7 +169,7 @@ def build_ogre_image(
 
     config_bashrc_baseimage(ogre_dir_path)
     config_dockerfile(
-        project_path, "my_project", ogre_dir_path, baseimage, dry=False, base=True
+        project_path, "user", ogre_dir_path, baseimage, dry=False, base=True
     )
     build_docker_image(
         os.path.join(ogre_dir_path, "Dockerfile"),

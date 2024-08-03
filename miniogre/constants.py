@@ -19,7 +19,7 @@ RUN chmod a+rwx /etc/bash.bashrc
 
 DOCKERFILE_BASEIMAGE = """
 ENV TZ=America/Chicago
-WORKDIR /opt/{}
+WORKDIR /home/{}
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update && apt-get install -y ttyd
 RUN pip install miniogre
@@ -71,7 +71,7 @@ echo -e "\e[0;33m"
 
 echo "
 Made by ogre.run, Inc.
-
+More info here: https://ogre.run
 Reach out to us: contact@ogre.run
 "
 
@@ -81,6 +81,7 @@ Reach out to us: contact@ogre.run
 # Aliases
 alias python="python3"
 """
+
 
 FILE_EXTENSIONS = {
     "python": [".py"],
