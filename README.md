@@ -57,9 +57,13 @@ After installation, go inside the project folder and run:
 
 This will analyze the project, generate `ogre_dir/Dockerfile`, `ogre_dir/requirements.txt`, and `ogre_dir/sbom.json` and build a Docker image.
 
-There are other commands:
+### Commands
+- `run`: Executes a series of actions, including configuring directories and files (bashrc, Dockerfile), generating requirements, building a Docker image, and spinning up a container.
+- `readme`: Analyzes the source code to generate a new README.md file that reflects the actual operations in the source code.
+- `eval`: Determines the reproducibility score of the repository by evaluating the README quality.
+- `spinup`: Spins up a container if an image was previously built with the run command.
+- `version`: Displays the current version of miniogre.
 
-- `readme`: Analyzes the source code to generate a new `README.md` file that is compatible with what actually happens in the source code.  
 
 ## Contributing
 Contributions to improve this resource are more than welcome. For inquiries, contact the maintainers at [contact@ogre.run](contact@ogre.run).
