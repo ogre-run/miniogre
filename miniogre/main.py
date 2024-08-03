@@ -145,5 +145,41 @@ def spinup(port_map: str = "8001:8001"):
     end_emoji()
 
 
+@app.command()
+def build_ogre_image(
+    baseimage: str = "auto",
+    image_name: str = "baseimage",
+    verbose: bool = False,
+    cache: bool = False,
+    host_platform: str = None,
+):
+    """
+    Build miniogre baseimage
+    """
+
+    display_figlet()
+    starting_emoji()
+
+    if baseimage == "auto":
+        baseimage = config_baseimage()
+
+    ogre_dir_path = config_ogre_dir(
+        os.path.join(project_path, os.getenv("OGRE_DIR", OGRE_DIR))
+    )
+
+    config_bashrc_baseimage(ogre_dir_path)
+    config_dockerfile(
+        project_path, "user", ogre_dir_path, baseimage, dry=False, base=True
+    )
+    build_docker_image(
+        os.path.join(ogre_dir_path, "Dockerfile"),
+        image_name,
+        host_platform,
+        verbose,
+        cache,
+    )
+    end_emoji()
+
+
 if __name__ == "__main__":
     app()
