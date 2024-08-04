@@ -40,7 +40,7 @@ To use miniogre effectively, ensure the following are installed:
     - `groq`: type `export GROQ_SECRET_ACCESS_KEY=<YOUR_TOKEN>` on the terminal;
     - `octoai`: type `export OCTOAI_TOKEN=<YOUR_TOKEN>` on the terminal.
 
-OpenAI token in the environment: 
+OpenAI token in the environment:
 
 ## Installation
 Miniogre can be installed either by using `pip` or `pipx`:
@@ -49,7 +49,7 @@ Miniogre can be installed either by using `pip` or `pipx`:
 
 You can also build the wheel from the source and then install it on your system. We provide a handy script `install.sh` to accomplish that.
 
-## Usage 
+## Usage
 
 After installation, go inside the project folder and run:
 
@@ -64,6 +64,11 @@ This will analyze the project, generate `ogre_dir/Dockerfile`, `ogre_dir/require
 - `spinup`: Spins up a container if an image was previously built with the run command.
 - `version`: Displays the current version of miniogre.
 
+### Build Ogre base image
+
+Useful to create a Docker image that can be deployed on Google Cloud Run:
+
+`miniogre build-ogre-image --host-platform linux/amd64 --baseimage ogrerun/base:ubuntu22.04-amd64 --verbose --no-cache`
 
 ## Contributing
 Contributions to improve this resource are more than welcome. For inquiries, contact the maintainers at [contact@ogre.run](contact@ogre.run).

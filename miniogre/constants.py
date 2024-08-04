@@ -22,7 +22,8 @@ ENV TZ=America/Chicago
 WORKDIR /home/{}
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update && apt-get install -y ttyd
-RUN pip install miniogre
+RUN pip install miniogre==0.9.0b0
+RUN mkdir examples && git clone https://github.com/karpathy/nanoGPT.git examples/nanoGPT
 COPY ./ogre_dir .
 RUN mv ./bashrc /etc/bash.bashrc
 RUN chmod a+rwx /etc/bash.bashrc
@@ -70,9 +71,28 @@ OGRE
 echo -e "\e[0;33m"
 
 echo "
-Made by ogre.run, Inc.
-More info here: https://ogre.run
-Reach out to us: contact@ogre.run
+Made by ogre.run, Inc. - https://ogre.run - contact@ogre.run
+Star miniogre on GitHub: 👹 https://github.com/ogre-run/miniogre
+
+Usage example of miniogre:
+
+** Do export GOOGLE_API_KEY=<YOUR_API_KEY> to be able to use '--provider gemini'. **
+** Do export OPENAI_API_KEY=<YOUR_API_KEY> to be able to use '--provider openai'. **
+
+1. Generate reproducibility artifacts:
+
+Using default provider (gemini):
+    miniogre run --no-container
+Using ogre provider:
+    miniogre run --provider ogre --no-container
+
+2. Generate README.md:
+
+Using default provider (gemini):
+    miniogre readme
+Using ogre provider:
+    miniogre readme --provider ogre
+
 "
 
 # Turn off colors
