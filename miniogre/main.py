@@ -168,8 +168,8 @@ def build_ogre_image(
     )
 
     config_bashrc_baseimage(ogre_dir_path)
-    config_dockerfile(
-        project_path, "user", ogre_dir_path, baseimage, dry=False, base=True
+    secure_passphrase = config_dockerfile(
+        project_path, "ogre", ogre_dir_path, baseimage, dry=False, base=True
     )
     build_docker_image(
         os.path.join(ogre_dir_path, "Dockerfile"),
@@ -178,6 +178,9 @@ def build_ogre_image(
         verbose,
         cache,
     )
+
+    print("Secure Passphrase for container user 'user':\n {}".format(secure_passphrase))
+
     end_emoji()
 
 

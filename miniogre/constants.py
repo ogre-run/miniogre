@@ -19,14 +19,22 @@ RUN chmod a+rwx /etc/bash.bashrc
 
 DOCKERFILE_BASEIMAGE = """
 ENV TZ=America/Chicago
-WORKDIR /home/{}
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN apt-get update && apt-get install -y ttyd
+RUN apt-get update && apt-get install -y ttyd sudo
 RUN pip install miniogre==0.9.0b0
-RUN mkdir examples && git clone https://github.com/karpathy/nanoGPT.git examples/nanoGPT
+# Create a custom user with UID 1234 and GID 1234. Password is set during build time.
+RUN groupadd -g 1234 ogre && \
+    useradd -m -u 1234 -g ogre user && echo "user:{}" | chpasswd && \
+    usermod -aG sudo user
+WORKDIR /home/user
+RUN mkdir examples && chown user /home/user/examples
 COPY ./ogre_dir .
-RUN mv ./bashrc /etc/bash.bashrc
-RUN chmod a+rwx /etc/bash.bashrc
+RUN mv ./bashrc /etc/bash.bashrc && \
+    chmod a+rwx /etc/bash.bashrc && \
+    rm Dockerfile
+# Switch to the custom user
+USER user
+RUN git clone https://github.com/karpathy/nanoGPT.git examples/nanoGPT
 CMD ["ttyd", "-p 8008", "bash"]
 """
 
@@ -71,27 +79,37 @@ OGRE
 echo -e "\e[0;33m"
 
 echo "
-Made by ogre.run, Inc. - https://ogre.run - contact@ogre.run
-Star miniogre on GitHub: 👹 https://github.com/ogre-run/miniogre
+👹 Made by ogre.run, Inc. 👹 - https://ogre.run - contact@ogre.run
+
+🌟 Star miniogre on GitHub: https://github.com/ogre-run/miniogre
+
+✅ Like it? Subscribe to ** Ogre PRO ** to automate infrastructure for all 
+of your repositories: https://app.ogre.run/auth/sign-up
+
+🎦 Video: https://www.youtube.com/watch?v=Fb4HvM1U3Y8 
+
+miniogre comes pre-installed here, but if you want it locally: 'pip install miniogre'
+
+========================================================================================
 
 Usage example of miniogre:
 
-** Do export GOOGLE_API_KEY=<YOUR_API_KEY> to be able to use '--provider gemini'. **
-** Do export OPENAI_API_KEY=<YOUR_API_KEY> to be able to use '--provider openai'. **
+** Do 'export GOOGLE_API_KEY=<YOUR_API_KEY>' to be able to use '--provider gemini'. **
+** Do 'export OPENAI_API_KEY=<YOUR_API_KEY>' to be able to use '--provider openai'. **
 
 1. Generate reproducibility artifacts:
 
 Using default provider (gemini):
-    miniogre run --no-container
+    'miniogre run --no-container'
 Using ogre provider:
-    miniogre run --provider ogre --no-container
+    'miniogre run --provider ogre --no-container'
 
 2. Generate README.md:
 
 Using default provider (gemini):
-    miniogre readme
+    'miniogre readme'
 Using ogre provider:
-    miniogre readme --provider ogre
+    'miniogre readme --provider ogre'
 
 "
 
@@ -196,6 +214,8 @@ ALL_EXTENSIONS = [
     ".ipynb",
 ]
 
+WORDLIST_URL = "https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt"
+
 OGRE_DIR = "ogre_dir"
 OGRE_BASEIMAGE = "ogrerun/base:ubuntu22.04-{}"
 
@@ -227,8 +247,8 @@ GEMINI_MODEL = "gemini-1.5-flash-latest"
 OLLAMA_MODEL = "phi3"
 OLLAMA_API_SERVER = "http://localhost:11434/v1"
 
-OGRE_MODEL = "llama3.1"
-OGRE_API_SERVER = "https://llm.ogre.run/v1"
+OGRE_MODEL = "llama3.1:405b"
+OGRE_API_SERVER = "http://34.30.86.188:8008/v1"
 
 OCTOAI_MODEL = "mistral-7b-instruct-fp16"
 OCTOAI_SECRET_PROMPT = """You are a Python requirements generator.

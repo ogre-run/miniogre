@@ -1,11 +1,49 @@
 import os
 import platform
+import random
 
+import requests
 from dotenv import load_dotenv
 
 from .constants import *
 
 load_dotenv()
+
+
+def load_wordlist(url):
+
+    # Local filename to save the downloaded file
+    filename = "wordlist.txt"
+
+    # Send a GET request to the URL
+    response = requests.get(url)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Write the content to a local file
+        with open(filename, "wb") as file:
+            file.write(response.content)
+        print(f"File '{filename}' downloaded successfully.")
+    else:
+        print(f"Failed to download file. Status code: {response.status_code}")
+
+    with open(filename, "r") as file:
+        wordlist = [line.strip() for line in file.readlines()]
+
+    # Clean up before returning wordlist
+    file_path = "./{}".format(filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print(f"File '{file_path}' deleted successfully.")
+    else:
+        print(f"File '{file_path}' does not exist.")
+
+    return wordlist
+
+
+def generate_secure_passphrase(wordlist, num_words=2):
+    passphrase = " ".join(random.choice(wordlist) for _ in range(num_words))
+    return passphrase.replace("\t", "").replace(" ", "")
 
 
 def config_ogre_dir(ogre_dir):
@@ -109,14 +147,20 @@ def config_dockerfile(
 
         dockerfile_string = DOCKERFILE_BASEIMAGE
 
+        # Load wordlist from a file (replace 'eff_wordlist.txt' with your actual file path)
+        wordlist = load_wordlist(WORDLIST_URL)
+        secure_passphrase = generate_secure_passphrase(wordlist)
+
         with open("{}/Dockerfile".format(ogre_dir), "w") as f:
-            f.write(dockerfile_string.format(project_name))
+            f.write(dockerfile_string.format(secure_passphrase))
         f.close()
         with open("{}/Dockerfile".format(ogre_dir), "r+") as f:
             content = f.read()
             f.seek(0, 0)
             f.write("FROM {}".format(baseimage) + content)
         f.close()
+
+        return secure_passphrase
 
     else:
 
