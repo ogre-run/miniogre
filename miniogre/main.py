@@ -184,5 +184,20 @@ def build_ogre_image(
     end_emoji()
 
 
+@app.command()
+def cloud(
+    destination: str = "https://fileserver-2osynaaqfa-uc.a.run.app",
+):
+    """
+    Move local work to the cloud
+    """
+
+    display_figlet()
+    starting_emoji()
+
+    filename = create_tar(project_path, 'ogre-tarfile')
+    res = send_tarfile_to_server(filename, destination)
+    delete_tarfile(filename)
+
 if __name__ == "__main__":
     app()

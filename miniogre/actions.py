@@ -3,6 +3,9 @@ import glob
 import os
 import platform
 import subprocess
+import tarfile
+import requests
+import uuid
 from string import Template
 
 import emoji
@@ -995,3 +998,64 @@ def evaluate_readme_groq(readme, verbose):
     except Exception as e:
         print(e)
     return score
+
+def create_tar(folder_path, output_filename):
+    # Generate a unique hash using UUID
+    unique_hash = uuid.uuid4().hex
+    
+    # Add the unique hash to the output filename
+    output_filename_with_hash = f"{output_filename}_{unique_hash}.tar"
+    
+    # Create the tar file with the unique name
+    with tarfile.open(output_filename_with_hash, 'w') as tarf:
+        tarf.add(folder_path, arcname=os.path.basename(folder_path))
+
+    print(f"tarfile created: {output_filename_with_hash}")
+
+    return os.path.join(folder_path, output_filename_with_hash)
+
+def send_tarfile_to_server(file_path, server_url):
+    """
+    Sends a tarfile to the specified server URL using a POST request.
+
+    :param file_path: Path to the tarfile to be sent.
+    :param server_url: URL of the server to send the file to.
+    :return: Response from the server.
+    """
+    try:
+        # Open the tarfile in binary mode
+        with open(file_path, 'rb') as file:
+            # Create a dictionary to hold the file data
+            files = {'file': (file_path, file)}
+
+            # Send the POST request to the server
+            response = requests.post(server_url, files=files)
+
+            # Check if the request was successful
+            if response.status_code == 200:
+                print(f"File uploaded successfully: \n \n {response.text}")
+            else:
+                print(f"Failed to upload file. Status code: {response.status_code}, Response: {response.text}")
+
+            return response
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+def delete_tarfile(file_path):
+    """
+    Deletes a tar file specified by file_path.
+
+    :param file_path: Path to the tar file to be deleted.
+    :type file_path: str
+    :raises FileNotFoundError: If the specified file does not exist.
+    :raises PermissionError: If the file cannot be deleted due to insufficient permissions.
+    """
+    try:
+        os.remove(file_path)
+        #print(f"File '{file_path}' has been deleted successfully.")
+    except FileNotFoundError:
+        print(f"File '{file_path}' does not exist.")
+    except PermissionError:
+        print(f"Permission denied: cannot delete '{file_path}'.")
+    except Exception as e:
+        print(f"An error occurred while trying to delete the file: {e}")

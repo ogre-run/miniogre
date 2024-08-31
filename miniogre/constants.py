@@ -20,7 +20,7 @@ RUN chmod a+rwx /etc/bash.bashrc
 DOCKERFILE_BASEIMAGE = """
 ENV TZ=America/Chicago
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN apt-get update && apt-get install -y ttyd sudo
+RUN apt-get update && apt-get install -y ttyd sudo build-essential cmake wget htop
 RUN pip install miniogre==0.9.0b0
 # Create a custom user with UID 1234 and GID 1234. Password is set during build time.
 RUN groupadd -g 1234 ogre && \
@@ -29,13 +29,14 @@ RUN groupadd -g 1234 ogre && \
 WORKDIR /home/user
 RUN mkdir examples && chown user /home/user/examples
 COPY ./ogre_dir .
+COPY ttyd_entrypoint.sh .
 RUN mv ./bashrc /etc/bash.bashrc && \
     chmod a+rwx /etc/bash.bashrc && \
     rm Dockerfile
 # Switch to the custom user
-USER user
+# USER user
 RUN git clone https://github.com/karpathy/nanoGPT.git examples/nanoGPT
-CMD ["ttyd", "-p 8008", "bash"]
+CMD ["ttyd", "-W", "-a", "-p", "8008", "./ttyd_entrypoint.sh"]
 """
 
 BASHRC = """
