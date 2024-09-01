@@ -168,6 +168,7 @@ def build_ogre_image(
     )
 
     config_bashrc_baseimage(ogre_dir_path)
+    config_ttyd_entrypoint(ogre_dir_path)
     secure_passphrase = config_dockerfile(
         project_path, "ogre", ogre_dir_path, baseimage, dry=False, base=True
     )

@@ -1033,7 +1033,7 @@ def send_tarfile_to_server(file_path, server_url):
 
             # Check if the request was successful
             if response.status_code == 200:
-                print(f"File uploaded successfully: \n \n {response.text}")
+                print(f"\nSuccessful upload to Ogre Terminal \n \n {response.text}")
             else:
                 print(f"Failed to upload file. Status code: {response.status_code}, Response: {response.text}")
 

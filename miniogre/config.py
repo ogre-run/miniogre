@@ -103,6 +103,22 @@ def config_bashrc(project_dir, ogre_dir, product, version, date):
     return os.path.isfile("{}/bashrc".format(ogre_dir))
 
 
+def config_ttyd_entrypoint(ogre_dir):
+    """
+    Config ttyd_entrypoint script
+    """
+
+    file_path = "{}/ttyd_entrypoint.sh".format(ogre_dir)
+
+    with open(file_path, "w") as f:
+        f.write(TTYD_ENTRYPOINT)
+
+    # Make the file executable
+    os.chmod(file_path, 0o755)
+
+    return os.path.isfile("{}/ttyd_entrypoint.sh".format(ogre_dir))
+
+
 def config_bashrc_baseimage(ogre_dir):
     """
     Create simple bashrc.

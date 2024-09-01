@@ -29,7 +29,6 @@ RUN groupadd -g 1234 ogre && \
 WORKDIR /home/user
 RUN mkdir examples && chown user /home/user/examples
 COPY ./ogre_dir .
-COPY ttyd_entrypoint.sh .
 RUN mv ./bashrc /etc/bash.bashrc && \
     chmod a+rwx /etc/bash.bashrc && \
     rm Dockerfile
@@ -121,6 +120,18 @@ Using ogre provider:
 alias python="python3"
 """
 
+TTYD_ENTRYPOINT = """#!/bin/bash
+
+if [ "$1" == "" ]; then
+    bash
+else
+    curl -o $1 "https://fileserver.ogre.run/download?filename=/app/files/$1"
+    tar -xf $1
+    rm $1
+    clear
+    bash
+fi
+"""
 
 FILE_EXTENSIONS = {
     "python": [".py"],
