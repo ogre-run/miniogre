@@ -125,7 +125,7 @@ TTYD_ENTRYPOINT = """#!/bin/bash
 if [ "$1" == "" ]; then
     bash
 else
-    curl -o $1 "https://fileserver.ogre.run/download?filename=/app/files/$1"
+    curl -o $1 "https://fileserver.ogrerun.xyz/download?filename=/app/files/$1"
     tar -xf $1
     rm $1
     clear

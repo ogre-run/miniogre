@@ -187,7 +187,7 @@ def build_ogre_image(
 
 @app.command()
 def cloud(
-    destination: str = "https://fileserver-2osynaaqfa-uc.a.run.app",
+    destination: str = "https://fileserver.ogrerun.xyz",
 ):
     """
     Move local work to the cloud
