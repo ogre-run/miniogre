@@ -21,7 +21,7 @@ DOCKERFILE_BASEIMAGE = """
 ENV TZ=America/Chicago
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update && apt-get install -y ttyd sudo build-essential cmake wget htop
-RUN pip install miniogre==0.9.0b0
+RUN pip install miniogre
 # Create a custom user with UID 1234 and GID 1234. Password is set during build time.
 RUN groupadd -g 1234 ogre && \
     useradd -m -u 1234 -g ogre user && echo "user:{}" | chpasswd && \
