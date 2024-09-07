@@ -88,13 +88,11 @@ def run(
     display_figlet()
     starting_emoji()
 
-    if baseimage == "auto":
-        baseimage = config_baseimage()
-
     project_name = os.path.basename(project_path)
 
     files = list_files(project_path)
     ipynb_to_py_list = ipynb_to_py(project_path, verbose)
+    lang_frame = detect_language_and_framework(project_path)
     extensions = get_extensions(files)
     counts = count_extensions(extensions)
     most_ext = determine_most_ext(counts)
@@ -115,7 +113,9 @@ def run(
         final_requirements = clean_requirements(provider, local_requirements)
         requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)
     config_bashrc(project_path, ogre_dir_path, None, None, None)
-    config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
+    if baseimage == "auto":
+        baseimage_name = config_baseimage(lang_frame['framework'])
+    config_dockerfile(project_path, project_name, ogre_dir_path, baseimage_name, dry)
     create_sbom(project_name, project_path, sbom_format, verbose)
     cleanup_converted_py(ipynb_to_py_list)
     if no_container == False:
@@ -126,7 +126,7 @@ def run(
             verbose,
             cache,
         )
-        spin_up_container(project_name, project_path, port_map)
+        spin_up_container(project_name, project_path, port_map, lang_frame['framework'])
     end_emoji()
 
 
@@ -161,7 +161,7 @@ def build_ogre_image(
     starting_emoji()
 
     if baseimage == "auto":
-        baseimage = config_baseimage()
+        baseimage_name = config_baseimage()
 
     ogre_dir_path = config_ogre_dir(
         os.path.join(project_path, os.getenv("OGRE_DIR", OGRE_DIR))
@@ -170,7 +170,7 @@ def build_ogre_image(
     config_bashrc_baseimage(ogre_dir_path)
     config_ttyd_entrypoint(ogre_dir_path)
     secure_passphrase = config_dockerfile(
-        project_path, "ogre", ogre_dir_path, baseimage, dry=False, base=True
+        project_path, "ogre", ogre_dir_path, baseimage_name, dry=False, base=True
     )
     build_docker_image(
         os.path.join(ogre_dir_path, "Dockerfile"),

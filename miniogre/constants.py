@@ -1,3 +1,14 @@
+DOCKERFILE_NODE = """
+WORKDIR /opt/{}
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN cp ./ogre_dir/bashrc /etc/bash.bashrc
+RUN chmod a+rwx /etc/bash.bashrc
+RUN npm run build
+CMD npm start
+"""
+
 DOCKERFILE = """
 ENV TZ=America/Chicago
 WORKDIR /opt/{}
@@ -226,10 +237,50 @@ ALL_EXTENSIONS = [
     ".ipynb",
 ]
 
+# Dictionary to map languages to their file extensions
+LANGUAGES = {
+    "Python": [".py"],
+    "JavaScript": [".js"],
+    "TypeScript": [".ts"],
+    "HTML": [".html"],
+    "CSS": [".css"],
+    "Java": [".java"],
+    "Ruby": [".rb"],
+    "PHP": [".php"],
+    "C#": [".cs"],
+    "Go": [".go"],  # Added Go here
+}
+
+# Dictionary to identify frameworks based on specific files
+JS_TS_FRAMEWORKS = {
+    "React": ["package.json", ["react"]],
+    "Next.js": ["package.json", ["next"]],
+    "Vue.js": ["package.json", ["vue"]],
+    "Angular": ["angular.json", ["angular"]],
+    "Svelte": ["package.json", ["svelte"]],
+}
+
+# Dictionary framework:docker_cmd
+FRAMEWORK_DOCKER_CMD = {
+    "React": "",
+    "Next.js": "",
+    "Vue.js": "",
+    "Angular": "",
+    "Svelte": "",
+    None: "bash",
+}
+
 WORDLIST_URL = "https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt"
 
 OGRE_DIR = "ogre_dir"
 OGRE_BASEIMAGE = "ogrerun/base:ubuntu22.04-{}"
+FRAMEWORK_BASEIMAGE = {
+        "React": "node:latest",
+        "Next.js": "node:latest",
+        "Vue.js": "node:latest",
+        "Angular": "node:latest",
+        "Svelte": "node:latest",
+        }
 
 OPENAI_MODEL = "gpt-4o"
 OPENAI_SECRET_PROMPT = """You are a Python requirements generator.
