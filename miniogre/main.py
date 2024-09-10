@@ -140,7 +140,8 @@ def spinup(port_map: str = "8001:8001"):
     starting_emoji()
 
     project_name = os.path.basename(project_path)
-    spin_up_container(project_name, project_path, port_map)
+    lang_frame = detect_language_and_framework(project_path)
+    spin_up_container(project_name, project_path, port_map, lang_frame['framework'])
 
     end_emoji()
 

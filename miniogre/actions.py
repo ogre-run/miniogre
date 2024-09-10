@@ -687,13 +687,14 @@ def save_readme(readme, ogre_dir_path):
 def build_docker_image(
     dockerfile, image_name, host_platform=None, verbose=False, cache=False
 ):
-    # build docker image
+    # TODO: Generate unique tag to avoid name clashing among different users
+    # tag = uuid.uuid4().hex
 
     if host_platform == None:
         platform_name = "linux/{}".format(platform.machine())
     else:
         platform_name = host_platform
-    image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
+    image_name = "miniogre/{}:latest".format(image_name.lower())
 
     build_emoji()
     print("   platform = {}".format(platform_name))

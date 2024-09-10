@@ -144,6 +144,16 @@ else
 fi
 """
 
+DEPLOY_ENTRYPOINT = """#!/bin/bash
+
+curl -o $1 "https://fileserver.ogrerun.xyz/download?filename=/app/files/$1"
+docker load < $1
+rm $1
+    
+bash
+fi
+"""
+
 FILE_EXTENSIONS = {
     "python": [".py"],
     "javascript": [".js"],
