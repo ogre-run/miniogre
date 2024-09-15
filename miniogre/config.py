@@ -143,7 +143,6 @@ def config_dockerfile(
     REQUIREMENTS_LINE = "RUN cat ./{}/requirements.txt | xargs -L 1 uv pip install --system; exit 0".format(
         os.path.basename(ogre_dir)
     )
-
     if dry:
         print("Dry build -- no requirements will be installed {}".format(baseimage))
 
@@ -157,6 +156,8 @@ def config_dockerfile(
             f.seek(0, 0)
             f.write("FROM {}".format(baseimage) + content)
         f.close()
+
+        return os.path.isfile("{}/Dockerfile".format(ogre_dir))
 
     if base:
         print("Building baseimage.")
@@ -206,7 +207,7 @@ def config_dockerfile(
                 f.write("{}".format(REQUIREMENTS_LINE))
             f.close()
 
-    return os.path.isfile("{}/Dockerfile".format(ogre_dir))
+        return os.path.isfile("{}/Dockerfile".format(ogre_dir))
 
 
 def config_baseimage():
