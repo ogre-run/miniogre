@@ -243,7 +243,7 @@ Note that some packages do not exist in the PyPi repository, they are only local
 Ignore the following Python packages: git, jittor, cuda, shihong, nvdiffrast: they do not exist on the PyPi repository.
 Your output should be a raw ASCII text file."""
 
-GEMINI_MODEL = "gemini-1.5-flash-latest"
+GEMINI_MODEL = "gemini-1.5-pro-latest"
 # GEMINI_SECRET_PROMPT = """You are a Python requirements generator.
 # You should generate the contents of a Python requirements file (raw text only) taking into account the text sent by the user.
 # The raw text sent by the user consists of a combination of the README file contents and the source code contents.
