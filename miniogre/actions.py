@@ -9,17 +9,17 @@ import uuid
 from string import Template
 
 import emoji
-import google.generativeai as googleai
+#import google.generativeai as googleai
 import tiktoken
 from groq import Groq
 # from groq.cloud.core import Completion
-from mistralai.client import MistralClient
-from mistralai.models.chat_completion import ChatMessage
+# from mistralai.client import MistralClient
+# from mistralai.models.chat_completion import ChatMessage
 from octoai.client import Client as OctoAiClient
 from openai import OpenAI
-from pyfiglet import Figlet
+#from pyfiglet import Figlet
 from rich import print as rprint
-from yaspin import yaspin
+#from yaspin import yaspin
 
 from .constants import *
 
@@ -387,19 +387,7 @@ def clean_requirements_openai(requirements):
 
 
 def clean_requirements_gemini(requirements):
-    model = os.getenv("GEMINI_MODEL", GEMINI_MODEL)
-    prompt = os.getenv(
-        "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
-    )
-    # print(f"{model=}")
-    client = googleai.GenerativeModel(model)
-    full_prompt = f"{prompt}\n---\n{requirements}"
-    # print(f"{full_prompt=}")
-    response = client.generate_content(full_prompt, request_options={"timeout": 1000})
-    requirements = response.text
-    # print(f"{requirements=}")
-    return requirements
-
+    raise NotImplementedError("Gemini is not supported when Python < 3.9")
 
 def clean_requirements_ogre(requirements):
     model = os.getenv("OGRE_MODEL", OGRE_MODEL)
@@ -442,24 +430,7 @@ def clean_requirements_ollama(requirements):
 
 
 def clean_requirements_mistral(requirements):
-    model = os.getenv("MISTRAL_MODEL", MISTRAL_MODEL)
-    prompt = os.getenv(
-        "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
-    )
-    api_key = os.environ["MISTRAL_API_KEY"]
-    client = MistralClient(api_key=api_key)
-    content = prompt + "\n" + requirements
-    messages = [ChatMessage(role="user", content=content)]
-
-    # No streaming
-    chat_response = client.chat(
-        model=model,
-        messages=messages,
-    )
-    requirements = chat_response.choices[0].message.content
-
-    return requirements
-
+    raise NotImplementedError("Mistral is not supported") 
 
 def clean_requirements_groq(requirements):
     model = os.getenv("GROQ_MODEL", GROQ_MODEL)
@@ -576,20 +547,7 @@ def rewrite_readme_openai(readme):
 
 
 def rewrite_readme_gemini(readme):
-    model = os.getenv("GEMINI_MODEL", GEMINI_MODEL)
-    prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
-    full_prompt = f"{prompt}\n---\n{readme}"
-    # print(f"{model=} {full_prompt=}")
-    new_readme = ""
-    if "GEMINI_API_KEY" not in os.environ:
-        raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
-    try:
-        client = googleai.GenerativeModel(model)
-        response = client.generate_content(full_prompt)
-        new_readme = response.text
-    except Exception as e:
-        print(e)
-    return new_readme
+    raise NotImplementedError("Gemini is not supported when Python version < 3.9") 
 
 
 def rewrite_readme_ogre(readme):
@@ -660,22 +618,7 @@ def rewrite_readme_groq(readme):
 
 
 def rewrite_readme_mistral(readme):
-    model = os.getenv("MISTRAL_MODEL", MISTRAL_MODEL)
-    prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
-    api_key = os.environ["MISTRAL_API_KEY"]
-    client = MistralClient(api_key=api_key)
-    content = prompt + "\n" + readme
-    messages = [ChatMessage(role="user", content=content)]
-
-    # No streaming
-    chat_response = client.chat(
-        model=model,
-        messages=messages,
-    )
-    new_readme = chat_response.choices[0].message.content
-
-    return new_readme
-
+    raise NotImplementedError("Mistral is not supported.") 
 
 def save_readme(readme, ogre_dir_path):
     readme_fullpath = os.path.join(ogre_dir_path, "README.md")
@@ -723,13 +666,14 @@ def build_docker_image(
         (out, err) = p.communicate()
         p_status = p.wait()
     else:
-        with yaspin().aesthetic as sp:
-            sp.text = "generating ogre environment"
-            p = subprocess.Popen(
-                build_cmd, stdout=subprocess.PIPE, stderr=stderr, shell=True
-            )
-            (out, err) = p.communicate()
-            p_status = p.wait()
+        #with yaspin().aesthetic as sp:
+            #sp.text = "generating ogre environment"
+        print("generating ogre environment")
+        p = subprocess.Popen(
+            build_cmd, stdout=subprocess.PIPE, stderr=stderr, shell=True
+        )
+        (out, err) = p.communicate()
+        p_status = p.wait()
     return out
 
 
@@ -787,10 +731,11 @@ def create_sbom(image_name, project_path, format, verbose=False):
 
 def display_figlet():
     # Display Ogre figlet
-    f = Figlet(font="slant")
+    # f = Figlet(font="slant")
     # Get version
     # ogre_version = pkg_resources.get_distribution('miniogre').version
-    rprint("[cyan] {} [/cyan]".format(f.renderText("miniogre")))
+    # rprint("[cyan] {} [/cyan]".format(f.renderText("miniogre")))
+    rprint("[cyan] {} [/cyan]".format("miniogre"))
     rprint("[blue bold]miniogre - {}[/blue bold]".format("https://ogre.run"))
     print("\n")
 
@@ -923,24 +868,8 @@ def evaluate_readme_openai(readme, verbose):
 
 
 def evaluate_readme_gemini(readme, verbose):
-    model = os.getenv("GEMINI_MODEL", GEMINI_MODEL)
-    prompt_template = Template(os.getenv("README_EVAL_PROMPT", README_EVAL_PROMPT))
-    prompt = prompt_template.substitute(README=readme)
-    if verbose:
-        print(f"\n{model=}\n{prompt=}\n")
-    score = "0"
-    if "GEMINI_API_KEY" not in os.environ:
-        raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
-    try:
-        client = googleai.GenerativeModel(model)
-        response = client.generate_content(prompt)
-        score = response.text
-        if verbose:
-            print(f"\n{score=}\n")
-    except Exception as e:
-        print(e)
-    return score
-
+    raise NotImplementedError("Gemini is not supported when Python version < 3.9") 
+    
 
 def evaluate_readme_ollama(readme, verbose):
     model = os.getenv("OLLAMA_MODEL", OLLAMA_MODEL)

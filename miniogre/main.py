@@ -39,8 +39,8 @@ def readme(provider: str = "openai"):
     )
 
     context_contents = run_gptify(os.getcwd())
-    num_tokens = count_tokens(context_contents)
-    print("Total number of tokens: {}".format(num_tokens))
+    #num_tokens = count_tokens(context_contents)
+    #print("Total number of tokens: {}".format(num_tokens))
     new_readme = rewrite_readme(provider, context_contents)
     readme_path = save_readme(new_readme, ogre_dir_path)
     end_emoji()
