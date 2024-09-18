@@ -86,7 +86,7 @@ echo "
 ✅ Like it? Subscribe to ** Ogre PRO ** to automate infrastructure for all 
 of your repositories: https://app.ogre.run/auth/sign-up
 
-🎦 Video: https://www.youtube.com/watch?v=Fb4HvM1U3Y8 
+🎦 Video: https://www.youtube.com/watch?v=N6R2Z18etFk
 
 miniogre comes pre-installed here, but if you want it locally: 'pip install miniogre'
 
@@ -98,18 +98,10 @@ Usage example of miniogre:
 ** Do 'export OPENAI_API_KEY=<YOUR_API_KEY>' to be able to use '--provider openai'. **
 
 1. Generate reproducibility artifacts:
-
-Using default provider (gemini):
     'miniogre run --no-container'
-Using ogre provider:
-    'miniogre run --provider ogre --no-container'
 
 2. Generate README.md:
-
-Using default provider (gemini):
     'miniogre readme'
-Using ogre provider:
-    'miniogre readme --provider ogre'
 
 "
 
