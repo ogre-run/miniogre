@@ -241,8 +241,11 @@ OLLAMA_MODEL = "phi3"
 OLLAMA_API_SERVER = "http://localhost:11434/v1"
 
 OGRE_MODEL = "llama3.1"
-OGRE_API_SERVER = "https://proxied-ollama-467542322602.us-central1.run.app"
+OGRE_API_SERVER = "https://llm.ogre.run"
 OGRE_TOKEN = "YOUR_TOKEN"
+
+LLAMA_MODEL = "llama3.2"
+LLAMA_API_SERVER = "https://llama32-467542322602.us-central1.run.app"
 
 OCTOAI_MODEL = "mistral-7b-instruct-fp16"
 OCTOAI_SECRET_PROMPT = """You are a Python requirements generator.

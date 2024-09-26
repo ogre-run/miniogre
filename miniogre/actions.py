@@ -14,13 +14,14 @@ import google.generativeai as googleai
 import tiktoken
 from groq import Groq
 # from groq.cloud.core import Completion
-from mistralai.client import MistralClient
-from mistralai.models.chat_completion import ChatMessage
+#from mistralai.client import MistralClient
+#from mistralai.models.chat_completion import ChatMessage
 from octoai.client import Client as OctoAiClient
 from openai import OpenAI
 from pyfiglet import Figlet
 from rich import print as rprint
 from yaspin import yaspin
+from ollama import Client
 
 from .constants import *
 
@@ -357,6 +358,8 @@ def clean_requirements(provider, requirements):
         res = clean_requirements_gemini(requirements)
     elif provider == "ogre":
         res = clean_requirements_ogre(requirements)
+    elif provider == "llama3.2":
+        res = clean_requirements_llama32(requirements)
     elif provider == "ollama":
         res = clean_requirements_ollama(requirements)
     elif provider == "octoai":
@@ -415,10 +418,12 @@ def clean_requirements_ogre(requirements):
         "Content-Type": "application/json"
     }
 
+    full_prompt = prompt + " " + requirements
+    
     # Define the data to be sent in JSON format
     data = {
         "model": model,
-        "prompt": prompt,
+        "prompt": full_prompt,
         "ogre_token": ogre_token,
     }
 
@@ -430,6 +435,22 @@ def clean_requirements_ogre(requirements):
     requirements = response_json['response']
     
     return requirements
+
+
+def clean_requirements_llama32(requirements):
+   
+    model = os.getenv("LLAMA_MODEL", LLAMA_MODEL)
+    prompt = os.getenv(
+        "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
+    )
+    api_server = os.getenv("LLAMA_API_SERVER", LLAMA_API_SERVER)
+
+    full_prompt = prompt + " " + requirements
+    
+    client = Client(host=api_server)
+    response = client.generate(model=model, prompt=full_prompt)
+    
+    return json.loads(json.dumps(response))['response']
 
 
 def clean_requirements_ollama(requirements):
@@ -453,23 +474,24 @@ def clean_requirements_ollama(requirements):
 
 
 def clean_requirements_mistral(requirements):
-    model = os.getenv("MISTRAL_MODEL", MISTRAL_MODEL)
-    prompt = os.getenv(
-        "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
-    )
-    api_key = os.environ["MISTRAL_API_KEY"]
-    client = MistralClient(api_key=api_key)
-    content = prompt + "\n" + requirements
-    messages = [ChatMessage(role="user", content=content)]
+    raise NotImplementedError("rewrite_readme_octoai is not implemented.")
+    #model = os.getenv("MISTRAL_MODEL", MISTRAL_MODEL)
+    #prompt = os.getenv(
+    #    "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
+    #)
+    #api_key = os.environ["MISTRAL_API_KEY"]
+    #client = MistralClient(api_key=api_key)
+    #content = prompt + "\n" + requirements
+    #messages = [ChatMessage(role="user", content=content)]
 
-    # No streaming
-    chat_response = client.chat(
-        model=model,
-        messages=messages,
-    )
-    requirements = chat_response.choices[0].message.content
+    ## No streaming
+    #chat_response = client.chat(
+    #    model=model,
+    #    messages=messages,
+    #)
+    #requirements = chat_response.choices[0].message.content
 
-    return requirements
+    #return requirements
 
 
 def clean_requirements_groq(requirements):
@@ -552,6 +574,8 @@ def rewrite_readme(provider, readme):
         res = rewrite_readme_gemini(readme)
     elif provider == "ogre":
         res = rewrite_readme_ogre(readme)
+    elif provider == "llama3.2":
+        res = rewrite_readme_llama32(readme)
     elif provider == "ollama":
         res = rewrite_readme_ollama(readme)
     elif provider == "octoai":
@@ -635,6 +659,21 @@ def rewrite_readme_ogre(readme):
         #print(e)
     return new_readme
 
+def rewrite_readme_llama32(readme):
+
+    model = os.getenv("LLAMA_MODEL", LLAMA_MODEL)
+    prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
+    api_server = os.getenv("LLAMA_API_SERVER", LLAMA_API_SERVER)
+    
+    new_readme = ""
+    full_prompt = prompt + " " + readme
+
+    client = Client(host=api_server)
+    response = client.generate(model=model, prompt=full_prompt)
+    
+    new_readme = json.loads(json.dumps(response))['response']
+    
+    return new_readme
 
 def rewrite_readme_ollama(readme):
     model = os.getenv("OLLAMA_MODEL", OLLAMA_MODEL)
@@ -683,21 +722,22 @@ def rewrite_readme_groq(readme):
 
 
 def rewrite_readme_mistral(readme):
-    model = os.getenv("MISTRAL_MODEL", MISTRAL_MODEL)
-    prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
-    api_key = os.environ["MISTRAL_API_KEY"]
-    client = MistralClient(api_key=api_key)
-    content = prompt + "\n" + readme
-    messages = [ChatMessage(role="user", content=content)]
+    raise NotImplementedError("rewrite_readme_octoai is not implemented.")
+    #model = os.getenv("MISTRAL_MODEL", MISTRAL_MODEL)
+    #prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
+    #api_key = os.environ["MISTRAL_API_KEY"]
+    #client = MistralClient(api_key=api_key)
+    #content = prompt + "\n" + readme
+    #messages = [ChatMessage(role="user", content=content)]
 
-    # No streaming
-    chat_response = client.chat(
-        model=model,
-        messages=messages,
-    )
-    new_readme = chat_response.choices[0].message.content
+    ## No streaming
+    #chat_response = client.chat(
+    #    model=model,
+    #    messages=messages,
+    #)
+    #new_readme = chat_response.choices[0].message.content
 
-    return new_readme
+    #return new_readme
 
 
 def save_readme(readme, ogre_dir_path):
