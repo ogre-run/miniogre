@@ -1,3 +1,4 @@
+import json
 import ast
 import glob
 import os
@@ -407,17 +408,27 @@ def clean_requirements_ogre(requirements):
         "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
     )
     api_server = os.getenv("OGRE_API_SERVER", OGRE_API_SERVER)
-    # print(f"{api_server=} {model=} {prompt=}")
-    client = OpenAI(base_url=api_server, api_key="ollama")
-    completion = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": requirements},
-        ],
-    )
-    requirements = completion.choices[0].message.content
+    ogre_token = os.getenv("OGRE_TOKEN", OGRE_TOKEN)
+    
+    # Define headers
+    headers = {
+        "Content-Type": "application/json"
+    }
 
+    # Define the data to be sent in JSON format
+    data = {
+        "model": model,
+        "prompt": prompt,
+        "ogre_token": ogre_token,
+    }
+
+    # Send the POST request
+    response = requests.post(api_server, headers=headers, json=data)
+
+    # Process the response
+    response_json = json.loads(response.json()['data'])
+    requirements = response_json['response']
+    
     return requirements
 
 
@@ -593,23 +604,35 @@ def rewrite_readme_gemini(readme):
 
 
 def rewrite_readme_ogre(readme):
+
     model = os.getenv("OGRE_MODEL", OGRE_MODEL)
     prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
     api_server = os.getenv("OGRE_API_SERVER", OGRE_API_SERVER)
-    # print(f"{api_server=} {model=} {prompt=}")
+    ogre_token = os.getenv("OGRE_TOKEN", OGRE_TOKEN)
+    
+    full_prompt = prompt + " " + readme
+
+    # Define headers
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    # Define the data to be sent in JSON format
+    data = {
+        "model": model,
+        "prompt": full_prompt,
+        "ogre_token": ogre_token,
+    }
     new_readme = ""
-    try:
-        client = OpenAI(base_url=api_server, api_key="ollama")
-        completion = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": readme},
-            ],
-        )
-        new_readme = completion.choices[0].message.content
-    except Exception as e:
-        print(e)
+    #try:
+    # Send the POST request
+    response = requests.post(api_server, headers=headers, json=data)
+
+    # Process the response
+    response_json = json.loads(response.json()['data'])
+    new_readme = response_json['response']
+    #except Exception as e:
+        #print(e)
     return new_readme
 
 

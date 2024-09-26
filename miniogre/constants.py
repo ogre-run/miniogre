@@ -236,23 +236,13 @@ Ignore the following Python packages: git, jittor, cuda, shihong, nvdiffrast: th
 Your output should be a raw ASCII text file."""
 
 GEMINI_MODEL = "gemini-1.5-pro-latest"
-# GEMINI_SECRET_PROMPT = """You are a Python requirements generator.
-# You should generate the contents of a Python requirements file (raw text only) taking into account the text sent by the user.
-# The raw text sent by the user consists of a combination of the README file contents and the source code contents.
-# You generate only the file contents as answer.
-# If the text sent by the user is invalid or is empty, just generate an empty content.
-# You should ignore the Python version 2 or 3.
-# The python package should not be included in the requirements file.
-# Note that some packages do not exist in the PyPi repository, they are only local, and thus shouldnt be added to the requirements.txt file.
-# Ignore the following Python packages: git, jittor, cuda, shihong, nvdiffrast: they do not exist on the PyPi repository.
-# Your output should be a raw ASCII text file."""
 
-# OLLAMA_MODEL = "mistral:7b"
 OLLAMA_MODEL = "phi3"
 OLLAMA_API_SERVER = "http://localhost:11434/v1"
 
-OGRE_MODEL = "llama3.1:405b"
-OGRE_API_SERVER = "http://34.30.86.188:8008/v1"
+OGRE_MODEL = "llama3.1"
+OGRE_API_SERVER = "https://proxied-ollama-467542322602.us-central1.run.app"
+OGRE_TOKEN = "YOUR_TOKEN"
 
 OCTOAI_MODEL = "mistral-7b-instruct-fp16"
 OCTOAI_SECRET_PROMPT = """You are a Python requirements generator.
