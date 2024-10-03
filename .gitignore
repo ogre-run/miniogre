@@ -6,3 +6,4 @@ _*
 env
 dist
 test
+.env
