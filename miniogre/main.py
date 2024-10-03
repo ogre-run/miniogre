@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 from .actions import *
+from .agent.agent import agent as run_agent
 from .config import *
 
 app = typer.Typer()
@@ -200,5 +201,20 @@ def cloud(
     res = send_tarfile_to_server(filename, destination)
     delete_tarfile(filename)
 
+
+@app.command()
+def agent(file_path: str, provider: str = "openai"):
+    """
+    Run miniogre agent on a file
+    """
+
+    display_figlet()
+    starting_emoji()
+
+    result = run_agent(file_path, provider)
+
+    end_emoji()
+
 if __name__ == "__main__":
     app()
+
