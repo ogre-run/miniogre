@@ -39,30 +39,26 @@ def starting_emoji():
 def end_emoji():
     print(emoji.emojize(":hourglass_done: Done."))
 
-
 def build_emoji():
     print(emoji.emojize(":spouting_whale: Building Docker image..."))
-
 
 def spinup_emoji():
     print(emoji.emojize(":rocket: Spinning up container..."))
 
-
 def requirements_emoji():
     print(emoji.emojize(":thinking_face: Generating requirements..."))
-
 
 def cleaning_requirements_emoji():
     print(emoji.emojize(":cooking: Refining..."))
 
-
 def generate_context_emoji():
     print(emoji.emojize(":magnifying_glass_tilted_left: Generating context..."))
-
 
 def readme_emoji():
     print(emoji.emojize(":notebook: Generating new README.md..."))
 
+def ask_emoji():
+    print(emoji.emojize(":thinking_face: Working on your question..."))
 
 def eval_emoji():
     print(emoji.emojize(":magnifying_glass_tilted_left: Evaluating..."))
@@ -1146,3 +1142,101 @@ def delete_tarfile(file_path):
         print(f"Permission denied: cannot delete '{file_path}'.")
     except Exception as e:
         print(f"An error occurred while trying to delete the file: {e}")
+
+def ask_miniogre(provider, context, question):
+    """
+    Ask questions about the codebase and request suggestions.
+
+    For example: `miniogre ask "<your_question_or_code_issue>" --provider ogre`
+
+    It takes the question, reads the entire repo, and then returns its answer.
+    """
+    ask_emoji()
+
+    if provider == "openai":
+        res = ask_miniogre_openai(context, question)
+    elif provider == "gemini":
+        res = ask_miniogre_gemini(context, question)
+    elif provider == "ogre":
+        res = ask_miniogre_ogre(context, question)
+    elif provider == "ollama":
+        raise NotImplementedError("Provider not implemented.")
+    elif provider == "octoai":
+        raise NotImplementedError("Provider not implemented.")
+    elif provider == "groq":
+        raise NotImplementedError("Provider not implemented.")
+    elif provider == "mistral":
+        raise NotImplementedError("Provider not implemented.")
+    return res
+
+
+def ask_miniogre_openai(context, question):
+    model = os.getenv("OPENAI_MODEL", OPENAI_MODEL)
+    prompt = os.getenv("DEFAULT_ASK_PROMPT", DEFAULT_ASK_PROMPT)
+    full_prompt = prompt.format(question)
+    answer = ""
+    if "OPENAI_API_KEY" not in os.environ:
+        raise EnvironmentError("OPENAI_API_KEY environment variable not defined")
+    try:
+        client = OpenAI()
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": full_prompt},
+                {"role": "user", "content": context},
+            ],
+        )
+        # print(completion)
+        answer = completion.choices[0].message.content
+    except Exception as e:
+        print(e)
+    return answer
+
+def ask_miniogre_gemini(context, question):
+    model = os.getenv("GEMINI_MODEL", GEMINI_MODEL)
+    prompt = os.getenv("DEFAULT_ASK_PROMPT", DEFAULT_ASK_PROMPT)
+    full_prompt = prompt.format(question) + "\n---\n" + f"{context}"
+    answer = ""
+    if "GEMINI_API_KEY" not in os.environ:
+        raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
+    try:
+        client = googleai.GenerativeModel(model)
+        response = client.generate_content(full_prompt)
+        answer = response.text
+    except Exception as e:
+        print(e)
+    return answer
+
+def ask_miniogre_ogre(context, question):
+    model = os.getenv("OGRE_MODEL", OGRE_MODEL)
+    prompt = os.getenv("DEFAULT_ASK_PROMPT", DEFAULT_ASK_PROMPT)
+    api_server = os.getenv("OGRE_API_SERVER", OGRE_API_SERVER)
+    ogre_token = os.getenv("OGRE_TOKEN", OGRE_TOKEN)
+
+    full_prompt = prompt.format(question) + "\n---\n" + f"{context}"
+
+    # Define headers
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    # Define the data to be sent in JSON format
+    data = {
+        "model": model,
+        "prompt": full_prompt,
+        "ogre_token": ogre_token,
+    }
+    answer = ""
+    try:
+        # Send the POST request
+        response = requests.post(api_server, headers=headers, json=data)
+
+        print(response)
+        input()
+        # Process the response
+        response_json = json.loads(response.json()['data'])
+        answer = response_json['response']
+    except Exception as e:
+        print(e)
+    return answer
+
