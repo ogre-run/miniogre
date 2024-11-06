@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "miniogre"
-version = "0.9.3"
+version = "0.10.0"
 description = "miniogre: from source code to reproducible environment, in seconds."
 readme = "README.md"
 authors = ["Wilder Lopes <wilder@ogre.run>"]
