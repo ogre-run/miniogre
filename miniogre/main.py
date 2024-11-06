@@ -26,6 +26,35 @@ def version():
 
 
 @app.command()
+def ask(question: str = "",
+        provider: str = "openai"):
+    """
+    Ask
+    """
+
+    display_figlet()
+    starting_emoji()
+
+    ogre_dir_path = config_ogre_dir(
+        os.path.join(project_path, os.getenv("OGRE_DIR", OGRE_DIR))
+    )
+
+    context_contents = run_gptify(os.getcwd())
+    num_tokens = count_tokens(context_contents)
+    print("Total number of tokens: {}".format(num_tokens))
+
+    # Send request to API
+    answer = ask_miniogre(provider, context_contents, question)
+
+    print(answer)
+    # Save answer
+    #readme_path = save_readme(new_readme, ogre_dir_path)
+
+    end_emoji()
+
+    return 0
+
+@app.command()
 def readme(provider: str = "openai"):
     """
     Rewrite readme

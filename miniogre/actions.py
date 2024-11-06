@@ -7,6 +7,9 @@ import subprocess
 import tarfile
 import requests
 import uuid
+import sys
+import importlib.metadata
+from typing import Dict, List
 from string import Template
 
 import emoji
@@ -25,6 +28,10 @@ from yaspin import yaspin
 from .constants import *
 
 
+# Standard library modules (Python 3.10+)
+standard_libs = sys.stdlib_module_names if hasattr(sys, 'stdlib_module_names') else set()
+
+
 def starting_emoji():
     print(emoji.emojize(":ogre: Starting miniogre..."))
 
@@ -32,30 +39,26 @@ def starting_emoji():
 def end_emoji():
     print(emoji.emojize(":hourglass_done: Done."))
 
-
 def build_emoji():
     print(emoji.emojize(":spouting_whale: Building Docker image..."))
-
 
 def spinup_emoji():
     print(emoji.emojize(":rocket: Spinning up container..."))
 
-
 def requirements_emoji():
     print(emoji.emojize(":thinking_face: Generating requirements..."))
-
 
 def cleaning_requirements_emoji():
     print(emoji.emojize(":cooking: Refining..."))
 
-
 def generate_context_emoji():
     print(emoji.emojize(":magnifying_glass_tilted_left: Generating context..."))
-
 
 def readme_emoji():
     print(emoji.emojize(":notebook: Generating new README.md..."))
 
+def ask_emoji():
+    print(emoji.emojize(":thinking_face: Working on your question..."))
 
 def eval_emoji():
     print(emoji.emojize(":magnifying_glass_tilted_left: Evaluating..."))
@@ -204,6 +207,70 @@ def extract_external_imports(code):
 
     return external_imports
 
+def parse_imports(file_content: str) -> List[str]:
+    """
+    Parse the Python file content to extract top-level import module names.
+    Includes multi-segment imports like `google.cloud` when directly imported.
+    """
+    tree = ast.parse(file_content)
+    modules = set()
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                module = alias.name.split('.')[0]  # Only get top-level module
+                modules.add(module)
+        elif isinstance(node, ast.ImportFrom):
+            # Include the base of multi-segment imports, e.g., `google.cloud`
+            module_base = node.module.split('.')[0]
+            if module_base == "google" and node.module.startswith("google.cloud"):
+                modules.add("google.cloud")
+            else:
+                modules.add(module_base)
+
+    return list(modules)
+
+def find_package_name(import_names: List[str]) -> Dict[str, str]:
+    package_mapping = {}
+    remaining_imports = set(import_names)  # Efficient lookup and removal
+
+    # Check installed packages
+    for dist in importlib.metadata.distributions():
+        top_level_modules = dist.read_text('top_level.txt')
+        if top_level_modules is None:
+            continue
+
+        top_level_modules = top_level_modules.splitlines()
+        for module in top_level_modules:
+            if module in remaining_imports:
+                package_mapping[module] = dist.metadata['Name']
+                remaining_imports.remove(module)
+
+        if not remaining_imports:
+            break
+
+    # Check remaining imports if they're standard libraries; if not, query PyPI
+    for name in remaining_imports:
+        if name in standard_libs:
+            package_mapping[name] = None  # Standard library, no package needed
+        else:
+            package_mapping[name] = query_pypi(name)
+
+    return package_mapping
+
+def query_pypi(module_name: str) -> str:
+    """
+    Query PyPI to check if a module name is a valid package name.
+    If found, return the package name; otherwise, return None.
+    """
+    url = f"https://pypi.org/pypi/{module_name}/json"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            return module_name
+    except requests.RequestException:
+        pass
+    return None  # Not found on PyPI
 
 def extract_requirements_from_code(project_path, ext, generate=True):
 
@@ -215,32 +282,23 @@ def extract_requirements_from_code(project_path, ext, generate=True):
 
         external_imports = []
         for filename in matching:
-            i = 0
-            while i < 2:
-                with open(os.path.join(project_path, filename), "r") as readfile:
-                    content = readfile.read()
-                    try:
-                        external_imports.append(extract_external_imports(content))
-                        i = 2
-                    except Exception as e:
-                        if i == 1:
-                            i = 2
-                            print(e)
-                            print(
-                                "External imports extraction failed for file {}: {}".format(
-                                    filename, Exception
-                                )
-                            )
-                        else:
-                            conform_to_pep8(filename)
-                            i += 1
+            with open(filename, 'r') as file:
+                file_content = file.read()
+            # Parse imports from the file content
+            import_names = parse_imports(file_content)
+            # Find the packages for each import
+            package_mapping = find_package_name(import_names)
+            # Filter out None values (standard libraries) and display the necessary packages
+            necessary_packages = {k: v for k, v in package_mapping.items() if v is not None}
+            package_list = list(necessary_packages.values())
+            print(f"> package_list: \n{package_list}")
 
-        external_imports = [
-            imp.split(".")[0] for sublist in external_imports for imp in sublist
-        ]
-        external_imports = list(set(external_imports))
-
-        requirements = "\n".join(external_imports)
+            external_imports.append(package_list)
+        print(f"> external_imports: \n{external_imports}")
+        # Collapse into a unique list with no duplicates
+        unique_list = list(set(item for sublist in external_imports for item in sublist))
+        requirements = "\n".join(unique_list)
+        print(f"> requirements: \n{requirements}")
     else:
         with open(
             "{}/requirements.txt".format(os.getenv("OGRE_DIR", OGRE_DIR)), "r"
@@ -365,6 +423,8 @@ def clean_requirements(provider, requirements):
         res = clean_requirements_groq(requirements)
     elif provider == "mistral":
         res = clean_requirements_mistral(requirements)
+    elif provider == "local":
+        res = requirements
     return res
 
 
@@ -1082,3 +1142,101 @@ def delete_tarfile(file_path):
         print(f"Permission denied: cannot delete '{file_path}'.")
     except Exception as e:
         print(f"An error occurred while trying to delete the file: {e}")
+
+def ask_miniogre(provider, context, question):
+    """
+    Ask questions about the codebase and request suggestions.
+
+    For example: `miniogre ask "<your_question_or_code_issue>" --provider ogre`
+
+    It takes the question, reads the entire repo, and then returns its answer.
+    """
+    ask_emoji()
+
+    if provider == "openai":
+        res = ask_miniogre_openai(context, question)
+    elif provider == "gemini":
+        res = ask_miniogre_gemini(context, question)
+    elif provider == "ogre":
+        res = ask_miniogre_ogre(context, question)
+    elif provider == "ollama":
+        raise NotImplementedError("Provider not implemented.")
+    elif provider == "octoai":
+        raise NotImplementedError("Provider not implemented.")
+    elif provider == "groq":
+        raise NotImplementedError("Provider not implemented.")
+    elif provider == "mistral":
+        raise NotImplementedError("Provider not implemented.")
+    return res
+
+
+def ask_miniogre_openai(context, question):
+    model = os.getenv("OPENAI_MODEL", OPENAI_MODEL)
+    prompt = os.getenv("DEFAULT_ASK_PROMPT", DEFAULT_ASK_PROMPT)
+    full_prompt = prompt.format(question)
+    answer = ""
+    if "OPENAI_API_KEY" not in os.environ:
+        raise EnvironmentError("OPENAI_API_KEY environment variable not defined")
+    try:
+        client = OpenAI()
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": full_prompt},
+                {"role": "user", "content": context},
+            ],
+        )
+        # print(completion)
+        answer = completion.choices[0].message.content
+    except Exception as e:
+        print(e)
+    return answer
+
+def ask_miniogre_gemini(context, question):
+    model = os.getenv("GEMINI_MODEL", GEMINI_MODEL)
+    prompt = os.getenv("DEFAULT_ASK_PROMPT", DEFAULT_ASK_PROMPT)
+    full_prompt = prompt.format(question) + "\n---\n" + f"{context}"
+    answer = ""
+    if "GEMINI_API_KEY" not in os.environ:
+        raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
+    try:
+        client = googleai.GenerativeModel(model)
+        response = client.generate_content(full_prompt)
+        answer = response.text
+    except Exception as e:
+        print(e)
+    return answer
+
+def ask_miniogre_ogre(context, question):
+    model = os.getenv("OGRE_MODEL", OGRE_MODEL)
+    prompt = os.getenv("DEFAULT_ASK_PROMPT", DEFAULT_ASK_PROMPT)
+    api_server = os.getenv("OGRE_API_SERVER", OGRE_API_SERVER)
+    ogre_token = os.getenv("OGRE_TOKEN", OGRE_TOKEN)
+
+    full_prompt = prompt.format(question) + "\n---\n" + f"{context}"
+
+    # Define headers
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    # Define the data to be sent in JSON format
+    data = {
+        "model": model,
+        "prompt": full_prompt,
+        "ogre_token": ogre_token,
+    }
+    answer = ""
+    try:
+        # Send the POST request
+        response = requests.post(api_server, headers=headers, json=data)
+
+        print(response)
+        input()
+        # Process the response
+        response_json = json.loads(response.json()['data'])
+        answer = response_json['response']
+    except Exception as e:
+        print(e)
+    return answer
+
