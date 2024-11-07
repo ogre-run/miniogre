@@ -1,3 +1,5 @@
+TIMEOUT_API_REQUEST = 240
+
 DOCKERFILE = """
 ENV TZ=America/Chicago
 WORKDIR /opt/{}

@@ -46,9 +46,8 @@ def ask(question: str = "",
     # Send request to API
     answer = ask_miniogre(provider, context_contents, question)
 
-    print(answer)
-    # Save answer
-    #readme_path = save_readme(new_readme, ogre_dir_path)
+    print(f"Here is the answer:\n{answer}")
+    # TODO: Save answer in Google Storage
 
     end_emoji()
 
@@ -139,7 +138,7 @@ def run(
             project_path, ogre_dir_path, force_requirements_generation
         )
         local_requirements = extract_requirements_from_code(
-            project_path, most_ext, generate_requirements
+            project_path, most_ext, generate_requirements, verbose
         )
         final_requirements = clean_requirements(provider, local_requirements)
         requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)

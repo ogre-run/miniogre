@@ -272,7 +272,7 @@ def query_pypi(module_name: str) -> str:
         pass
     return None  # Not found on PyPI
 
-def extract_requirements_from_code(project_path, ext, generate=True):
+def extract_requirements_from_code(project_path, ext, generate=True, verbose=False):
 
     requirements_emoji()
 
@@ -291,14 +291,17 @@ def extract_requirements_from_code(project_path, ext, generate=True):
             # Filter out None values (standard libraries) and display the necessary packages
             necessary_packages = {k: v for k, v in package_mapping.items() if v is not None}
             package_list = list(necessary_packages.values())
-            print(f"> package_list: \n{package_list}")
+            if verbose:
+                print(f"> {filename}")
+                print(f"> package_list: \n{package_list}")
 
             external_imports.append(package_list)
-        print(f"> external_imports: \n{external_imports}")
+        #print(f"> external_imports: \n{external_imports}")
         # Collapse into a unique list with no duplicates
         unique_list = list(set(item for sublist in external_imports for item in sublist))
         requirements = "\n".join(unique_list)
-        print(f"> requirements: \n{requirements}")
+        if verbose:
+            print(f"> requirements: \n{requirements}")
     else:
         with open(
             "{}/requirements.txt".format(os.getenv("OGRE_DIR", OGRE_DIR)), "r"
@@ -456,7 +459,7 @@ def clean_requirements_gemini(requirements):
     client = googleai.GenerativeModel(model)
     full_prompt = f"{prompt}\n---\n{requirements}"
     # print(f"{full_prompt=}")
-    response = client.generate_content(full_prompt, request_options={"timeout": 1000})
+    response = client.generate_content(full_prompt, request_options={"timeout": TIMEOUT_API_REQUEST})
     requirements = response.text
     # print(f"{requirements=}")
     return requirements
@@ -656,7 +659,7 @@ def rewrite_readme_gemini(readme):
         raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
     try:
         client = googleai.GenerativeModel(model)
-        response = client.generate_content(full_prompt)
+        response = client.generate_content(full_prompt, request_options={"timeout": TIMEOUT_API_REQUEST})
         new_readme = response.text
     except Exception as e:
         print(e)
@@ -1016,7 +1019,7 @@ def evaluate_readme_gemini(readme, verbose):
         raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
     try:
         client = googleai.GenerativeModel(model)
-        response = client.generate_content(prompt)
+        response = client.generate_content(prompt, request_options={"timeout": TIMEOUT_API_REQUEST})
         score = response.text
         if verbose:
             print(f"\n{score=}\n")
@@ -1186,7 +1189,6 @@ def ask_miniogre_openai(context, question):
                 {"role": "user", "content": context},
             ],
         )
-        # print(completion)
         answer = completion.choices[0].message.content
     except Exception as e:
         print(e)
@@ -1201,7 +1203,7 @@ def ask_miniogre_gemini(context, question):
         raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
     try:
         client = googleai.GenerativeModel(model)
-        response = client.generate_content(full_prompt)
+        response = client.generate_content(full_prompt, request_options={"timeout": TIMEOUT_API_REQUEST})
         answer = response.text
     except Exception as e:
         print(e)
@@ -1231,8 +1233,6 @@ def ask_miniogre_ogre(context, question):
         # Send the POST request
         response = requests.post(api_server, headers=headers, json=data)
 
-        print(response)
-        input()
         # Process the response
         response_json = json.loads(response.json()['data'])
         answer = response_json['response']
