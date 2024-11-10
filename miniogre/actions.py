@@ -221,12 +221,14 @@ def parse_imports(file_content: str) -> List[str]:
                 module = alias.name.split('.')[0]  # Only get top-level module
                 modules.add(module)
         elif isinstance(node, ast.ImportFrom):
-            # Include the base of multi-segment imports, e.g., `google.cloud`
-            module_base = node.module.split('.')[0]
-            if module_base == "google" and node.module.startswith("google.cloud"):
-                modules.add("google.cloud")
-            else:
-                modules.add(module_base)
+            # Check if the module is not None (avoid errors on relative imports)
+            if node.module:
+                # Include the base of multi-segment imports, e.g., `google.cloud`
+                module_base = node.module.split('.')[0]
+                if module_base == "google" and node.module.startswith("google.cloud"):
+                    modules.add("google.cloud")
+                else:
+                    modules.add(module_base)
 
     return list(modules)
 
