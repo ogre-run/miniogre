@@ -19,7 +19,6 @@ from groq import Groq
 # from groq.cloud.core import Completion
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
-from octoai.client import Client as OctoAiClient
 from openai import OpenAI
 from pyfiglet import Figlet
 from rich import print as rprint
@@ -352,8 +351,6 @@ def extract_requirements(provider, contents):
     requirements_emoji()
     if provider == "openai":
         res = extract_requirements_openai(contents)
-    elif provider == "octoai":
-        res = extract_requirements_octoai(contents)
     elif provider == "groq":
         res = extract_requirements_groq(contents)
     return res
@@ -373,29 +370,6 @@ def extract_requirements_openai(contents):
     requirements = completion.choices[0].message.content
 
     return requirements
-
-
-def extract_requirements_octoai(contents):
-    model = os.getenv("OCTOAI_MODEL", OCTOAI_MODEL)
-    prompt = os.getenv("OCTOAI_SECRET_PROMPT", OCTOAI_SECRET_PROMPT)
-    client = OctoAiClient()
-
-    completion = client.chat.completions.create(
-        messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": contents},
-        ],
-        model=model,
-        max_tokens=20000,
-        presence_penalty=0,
-        temperature=0.1,
-        top_p=0.9,
-    )
-
-    requirements = completion.choices[0].message.content
-
-    return requirements
-
 
 # def extract_requirements_groq(contents):
 #    prompt = os.getenv("GROQ_SECRET_PROMPT", GROQ_SECRET_PROMPT)
@@ -422,8 +396,6 @@ def clean_requirements(provider, requirements):
         res = clean_requirements_ogre(requirements)
     elif provider == "ollama":
         res = clean_requirements_ollama(requirements)
-    elif provider == "octoai":
-        res = clean_requirements_octoai(requirements)
     elif provider == "groq":
         res = clean_requirements_groq(requirements)
     elif provider == "mistral":
@@ -564,31 +536,6 @@ def clean_requirements_groq(requirements):
 
     return response
 
-
-def clean_requirements_octoai(requirements):
-    model = os.getenv("OCTOAI_MODEL", OCTOAI_MODEL)
-    prompt = os.getenv(
-        "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
-    )
-    client = OctoAiClient()
-
-    completion = client.chat.completions.create(
-        messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": requirements},
-        ],
-        model=model,
-        max_tokens=20000,
-        presence_penalty=0,
-        temperature=0.1,
-        top_p=0.9,
-    )
-
-    requirements = completion.choices[0].message.content
-
-    return requirements
-
-
 def save_requirements(requirements, ogre_dir_path):
     requirements_fullpath = os.path.join(ogre_dir_path, "requirements.txt")
     with open(requirements_fullpath, "w") as f:
@@ -619,8 +566,6 @@ def rewrite_readme(provider, readme):
         res = rewrite_readme_ogre(readme)
     elif provider == "ollama":
         res = rewrite_readme_ollama(readme)
-    elif provider == "octoai":
-        res = rewrite_readme_octoai(readme)
     elif provider == "groq":
         res = rewrite_readme_groq(readme)
     elif provider == "mistral":
@@ -720,10 +665,6 @@ def rewrite_readme_ollama(readme):
     except Exception as e:
         print(e)
     return new_readme
-
-
-def rewrite_readme_octoai(readme):
-    raise NotImplementedError("rewrite_readme_octoai is not implemented.")
 
 
 def rewrite_readme_groq(readme):
@@ -970,9 +911,6 @@ def evaluate_readme(provider, readme, verbose):
         return evaluate_readme_ollama(readme, verbose)
     elif provider == "groq":
         return evaluate_readme_groq(readme, verbose)
-    elif provider == "octoai":
-        # return evaluate_readme_octoai(readme, verbose)
-        raise NotImplementedError("This provider is not yet implemented")
     elif provider == "mistral":
         # res = evaluate_readme_mistral(readme, verbose)
         raise NotImplementedError("This provider is not yet implemented")
@@ -1165,8 +1103,6 @@ def ask_miniogre(provider, context, question):
     elif provider == "ogre":
         res = ask_miniogre_ogre(context, question)
     elif provider == "ollama":
-        raise NotImplementedError("Provider not implemented.")
-    elif provider == "octoai":
         raise NotImplementedError("Provider not implemented.")
     elif provider == "groq":
         raise NotImplementedError("Provider not implemented.")
