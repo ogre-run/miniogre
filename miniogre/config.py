@@ -1,11 +1,16 @@
 import os
 import platform
 import random
-
 import requests
+
 from dotenv import load_dotenv
+from zoneinfo import ZoneInfo
+from tzlocal import get_localzone
 
 from .constants import *
+
+# Get system timezone
+TIMEZONE = get_localzone().key
 
 load_dotenv()
 
@@ -151,7 +156,7 @@ def config_dockerfile(
         with open("{}/Dockerfile".format(ogre_dir), "r+") as f:
             content = f.read()
             f.seek(0, 0)
-            f.write("FROM {}".format(baseimage) + content)
+            f.write("FROM {}\nENV TZ={}".format(baseimage, TIMEZONE) + content)
         f.close()
 
         return os.path.isfile("{}/Dockerfile".format(ogre_dir))
@@ -171,7 +176,7 @@ def config_dockerfile(
         with open("{}/Dockerfile".format(ogre_dir), "r+") as f:
             content = f.read()
             f.seek(0, 0)
-            f.write("FROM {}".format(baseimage) + content)
+            f.write("FROM {}\nENV TZ={}".format(baseimage, TIMEZONE) + content)
         f.close()
 
         return secure_passphrase
@@ -196,7 +201,7 @@ def config_dockerfile(
             with open("{}/Dockerfile".format(ogre_dir), "r+") as f:
                 content = f.read()
                 f.seek(0, 0)
-                f.write("FROM {}".format(baseimage) + content)
+                f.write("FROM {}\nENV TZ={}".format(baseimage, TIMEZONE) + content)
                 # Find last line
                 f.seek(0, 2)
                 # while f.read(1) != b'\n':

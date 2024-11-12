@@ -1,9 +1,8 @@
 TIMEOUT_API_REQUEST = 240
 
 DOCKERFILE = """
-ENV TZ=America/Chicago
-WORKDIR /opt/{}
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+WORKDIR /opt/{}
 COPY . .
 RUN cp ./ogre_dir/bashrc /etc/bash.bashrc
 RUN chmod a+rwx /etc/bash.bashrc
@@ -11,16 +10,14 @@ RUN pip install uv pip-licenses cyclonedx-bom
 """
 
 DOCKERFILE_DRY = """
-ENV TZ=America/Chicago
-WORKDIR /opt/{}
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+WORKDIR /opt/{}
 COPY . .
 RUN cp ./ogre_dir/bashrc /etc/bash.bashrc
 RUN chmod a+rwx /etc/bash.bashrc
 """
 
 DOCKERFILE_BASEIMAGE = """
-ENV TZ=America/Chicago
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update && apt-get install -y ttyd sudo build-essential cmake wget htop
 RUN pip install miniogre
@@ -88,7 +85,7 @@ echo "
 ✅ Like it? Subscribe to ** Ogre PRO ** to automate infrastructure for all 
 of your repositories: https://app.ogre.run/auth/sign-up
 
-🎦 Video: https://www.youtube.com/watch?v=N6R2Z18etFk
+🎦 Video: https://youtu.be/zOqT0UGvwJY
 
 miniogre comes pre-installed here, but if you want it locally: 'pip install miniogre'
 
