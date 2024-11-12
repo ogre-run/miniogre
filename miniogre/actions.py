@@ -455,7 +455,7 @@ def clean_requirements_ogre(requirements):
     # Define the data to be sent in JSON format
     data = {
         "model": model,
-        "prompt": prompt,
+        "prompt": prompt + " " + requirements,
         "ogre_token": ogre_token,
     }
 
@@ -463,8 +463,8 @@ def clean_requirements_ogre(requirements):
     response = requests.post(api_server, headers=headers, json=data)
 
     # Process the response
-    response_json = json.loads(response.json()['data'])
-    requirements = response_json['response']
+    response_json = response.json()
+    requirements = response_json.get('data')
     
     return requirements
 
@@ -630,7 +630,7 @@ def rewrite_readme_ogre(readme):
     # Define the data to be sent in JSON format
     data = {
         "model": model,
-        "prompt": full_prompt,
+        "prompt": prompt + " " + readme,
         "ogre_token": ogre_token,
     }
     new_readme = ""
@@ -639,8 +639,8 @@ def rewrite_readme_ogre(readme):
     response = requests.post(api_server, headers=headers, json=data)
 
     # Process the response
-    response_json = json.loads(response.json()['data'])
-    new_readme = response_json['response']
+    response_json = response.json()
+    new_readme = response_json.get('data')
     #except Exception as e:
         #print(e)
     return new_readme
