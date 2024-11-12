@@ -66,15 +66,12 @@ def _run_welcome(project_path, product, version, ogre_dir, date):
     repo = os.popen("git remote get-url origin").read()
     author = os.popen("git log -1 --pretty=format:'%ae'").read()
     commit = os.popen("git log -1 --pretty=%h").read()
+    commit = ''.join(commit.splitlines())
     # date = datetime.today().strftime("%Y-%m-%d-%H:%M:%S")
 
     os.chdir(original_pwd)
 
-    BOILERPLATE = """
-        echo REPOSITORY = {} 
-        echo COMMIT = {}
-        echo COMMIT_AUTHOR = {} 
-        """.format(
+    BOILERPLATE = """# Git repo info\necho REPOSITORY = {}\necho COMMIT = {}\necho COMMIT_AUTHOR = {}""".format(
         repo[:-1], commit, author
     )
 
