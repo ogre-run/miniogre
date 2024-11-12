@@ -1172,8 +1172,8 @@ def ask_miniogre_ogre(context, question):
         response = requests.post(api_server, headers=headers, json=data)
 
         # Process the response
-        response_json = json.loads(response.json()['data'])
-        answer = response_json['response']
+        response_json = response.json()
+        answer = response_json.get('data')
     except Exception as e:
         print(e)
     return answer

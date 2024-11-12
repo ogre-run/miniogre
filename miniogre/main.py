@@ -27,9 +27,9 @@ def version():
 
 @app.command()
 def ask(question: str = "",
-        provider: str = "openai"):
+        provider: str = "ogre"):
     """
-    Ask
+    Ask question related to the project
     """
 
     display_figlet()
@@ -46,7 +46,7 @@ def ask(question: str = "",
     # Send request to API
     answer = ask_miniogre(provider, context_contents, question)
 
-    print(f"Here is the answer:\n{answer}")
+    print(f"\nHere is the answer:\n\n{answer}")
     # TODO: Save answer in Google Storage
 
     end_emoji()
@@ -54,9 +54,9 @@ def ask(question: str = "",
     return 0
 
 @app.command()
-def readme(provider: str = "openai"):
+def readme(provider: str = "ogre"):
     """
-    Rewrite readme
+    Generate README file for the project
     """
 
     display_figlet()
@@ -77,9 +77,9 @@ def readme(provider: str = "openai"):
 
 
 @app.command()
-def eval(provider: str = "openai", verbose: bool = False):
+def eval(provider: str = "ogre", verbose: bool = False):
     """
-    Determine the reproducibility score of the repository
+    [Beta] Determine the reproducibility score of the repository
     """
 
     display_figlet()
@@ -97,7 +97,7 @@ def eval(provider: str = "openai", verbose: bool = False):
 
 @app.command()
 def run(
-    provider: str = "openai",
+    provider: str = "ogre",
     baseimage: str = "auto",
     port_map: str = "8001:8001",
     dry: bool = False,
@@ -140,7 +140,9 @@ def run(
         local_requirements = extract_requirements_from_code(
             project_path, most_ext, generate_requirements, verbose
         )
-        final_requirements = clean_requirements(provider, local_requirements)
+        # Remove cleaning with LLM
+        final_requirements = local_requirements
+        # final_requirements = clean_requirements(provider, local_requirements)
         requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)
     config_bashrc(project_path, ogre_dir_path, None, None, None)
     config_dockerfile(project_path, project_name, ogre_dir_path, baseimage, dry)
@@ -218,7 +220,7 @@ def cloud(
     destination: str = "https://fileserver.ogrerun.xyz",
 ):
     """
-    Move local work to the cloud
+    Move local project folder to terminal in the cloud (terminal.ogre.run)
     """
 
     display_figlet()
