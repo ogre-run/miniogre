@@ -310,6 +310,24 @@ def extract_requirements_from_code(project_path, ext, generate=True, verbose=Fal
             requirements = f.read()
     return requirements
 
+def lock_requirements(content):
+    output = []  # List to collect each entry's compiled output
+
+    # Process each line in the provided content
+    for entry in content.strip().splitlines():
+        entry = entry.strip()  # Remove any extra whitespace
+        if entry:  # Ensure the entry is not empty
+            # Run the command and capture the output
+            result = subprocess.run(
+                ['uv', 'pip', 'compile', '--no-annotate', '--no-header', '-'],
+                input=entry,  # Pass entry as a string directly
+                capture_output=True,
+                text=True
+            )
+            output.append(result.stdout)  # Append the result to the output list
+
+    # Join all compiled entries into a single string
+    return ''.join(output)
 
 def append_files_with_ext(project_path, ext, limit, output_file):
     files = list_files(project_path)

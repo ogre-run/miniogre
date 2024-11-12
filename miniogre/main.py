@@ -140,8 +140,10 @@ def run(
         local_requirements = extract_requirements_from_code(
             project_path, most_ext, generate_requirements, verbose
         )
-        # Remove cleaning with LLM
-        final_requirements = local_requirements
+        
+        # Remove cleaning with LLM and lock requirements
+        final_requirements = lock_requirements(local_requirements)
+
         # final_requirements = clean_requirements(provider, local_requirements)
         requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)
     config_bashrc(project_path, ogre_dir_path, None, None, None)
