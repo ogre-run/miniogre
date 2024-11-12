@@ -242,8 +242,8 @@ GEMINI_MODEL = "gemini-1.5-pro-latest"
 OLLAMA_MODEL = "phi3"
 OLLAMA_API_SERVER = "http://localhost:11434/v1"
 
-OGRE_MODEL = "llama3.1"
-OGRE_API_SERVER = "https://proxied-ollama-467542322602.us-central1.run.app"
+OGRE_MODEL = GEMINI_MODEL
+OGRE_API_SERVER = "https://ogre-llm-467542322602.us-central1.run.app/ogre"
 OGRE_TOKEN = "YOUR_TOKEN"
 
 OCTOAI_MODEL = "mistral-7b-instruct-fp16"
@@ -259,10 +259,14 @@ Your output should be a raw ASCII text file.
 Do not return parts of the text sent by the user. We just want the requirements list.
 Only return the list of requirements. No other text like the filename at the top of the response or symbols are allowed."""
 
-REWRITE_README_PROMPT = """You are a specialist in understanding and explaining source code. 
+
+REWRITE_README_PROMPT = """You are a specialist in understanding and explaining source code, as well as its documentation.
 You are also a specialist in writing clear documentation (e.g README files) that helps people to understand the source code.
-Your task is to take a text input containing the current README and the code and use it to write an updated version of the README file.
-The README file should highlight the actual requirements that need to be installed."""
+You are in charge of writing an updated version of the README file. As a baseline, you are provided with a text input whose content is the current README and its corresponding codebase.
+The updated README file should:
+1. Start with a succinct explanation for a general audience about what the codebase does;
+2. If possible, highlight the relevance of the codebase (why the developers are working on it);
+3. Explain the necessary steps to set up the environment and make the code run, e.g., what requirements are needed."""
 
 # GROQ_MODEL = "mixtral-8x7b-32768"
 GROQ_MODEL = "llama3-70b-8192"
