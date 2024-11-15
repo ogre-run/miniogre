@@ -1,3 +1,4 @@
+import json
 import ast
 import glob
 import os
@@ -6,6 +7,9 @@ import subprocess
 import tarfile
 import requests
 import uuid
+import sys
+import importlib.metadata
+from typing import Dict, List
 from string import Template
 
 import emoji
@@ -15,13 +19,16 @@ from groq import Groq
 # from groq.cloud.core import Completion
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
-from octoai.client import Client as OctoAiClient
 from openai import OpenAI
 from pyfiglet import Figlet
 from rich import print as rprint
 from yaspin import yaspin
 
 from .constants import *
+
+
+# Standard library modules (Python 3.10+)
+standard_libs = sys.stdlib_module_names if hasattr(sys, 'stdlib_module_names') else set()
 
 
 def starting_emoji():
@@ -31,30 +38,26 @@ def starting_emoji():
 def end_emoji():
     print(emoji.emojize(":hourglass_done: Done."))
 
-
 def build_emoji():
     print(emoji.emojize(":spouting_whale: Building Docker image..."))
-
 
 def spinup_emoji():
     print(emoji.emojize(":rocket: Spinning up container..."))
 
-
 def requirements_emoji():
     print(emoji.emojize(":thinking_face: Generating requirements..."))
-
 
 def cleaning_requirements_emoji():
     print(emoji.emojize(":cooking: Refining..."))
 
-
 def generate_context_emoji():
     print(emoji.emojize(":magnifying_glass_tilted_left: Generating context..."))
-
 
 def readme_emoji():
     print(emoji.emojize(":notebook: Generating new README.md..."))
 
+def ask_emoji():
+    print(emoji.emojize(":thinking_face: Working on your question..."))
 
 def eval_emoji():
     print(emoji.emojize(":magnifying_glass_tilted_left: Evaluating..."))
@@ -203,8 +206,74 @@ def extract_external_imports(code):
 
     return external_imports
 
+def parse_imports(file_content: str) -> List[str]:
+    """
+    Parse the Python file content to extract top-level import module names.
+    Includes multi-segment imports like `google.cloud` when directly imported.
+    """
+    tree = ast.parse(file_content)
+    modules = set()
 
-def extract_requirements_from_code(project_path, ext, generate=True):
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                module = alias.name.split('.')[0]  # Only get top-level module
+                modules.add(module)
+        elif isinstance(node, ast.ImportFrom):
+            # Check if the module is not None (avoid errors on relative imports)
+            if node.module:
+                # Include the base of multi-segment imports, e.g., `google.cloud`
+                module_base = node.module.split('.')[0]
+                if module_base == "google" and node.module.startswith("google.cloud"):
+                    modules.add("google.cloud")
+                else:
+                    modules.add(module_base)
+
+    return list(modules)
+
+def find_package_name(import_names: List[str]) -> Dict[str, str]:
+    package_mapping = {}
+    remaining_imports = set(import_names)  # Efficient lookup and removal
+
+    # Check installed packages
+    for dist in importlib.metadata.distributions():
+        top_level_modules = dist.read_text('top_level.txt')
+        if top_level_modules is None:
+            continue
+
+        top_level_modules = top_level_modules.splitlines()
+        for module in top_level_modules:
+            if module in remaining_imports:
+                package_mapping[module] = dist.metadata['Name']
+                remaining_imports.remove(module)
+
+        if not remaining_imports:
+            break
+
+    # Check remaining imports if they're standard libraries; if not, query PyPI
+    for name in remaining_imports:
+        if name in standard_libs:
+            package_mapping[name] = None  # Standard library, no package needed
+        else:
+            package_mapping[name] = query_pypi(name)
+
+    return package_mapping
+
+def query_pypi(module_name: str) -> str:
+    """
+    Query PyPI to check if a module name is a valid package name.
+    If found, return the package name; otherwise, return None.
+    """
+    url = f"https://pypi.org/pypi/{module_name}/json"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            return module_name
+    except requests.RequestException:
+        pass
+    return None  # Not found on PyPI
+
+def extract_requirements_from_code(project_path, ext, generate=True, verbose=False):
 
     requirements_emoji()
 
@@ -214,32 +283,26 @@ def extract_requirements_from_code(project_path, ext, generate=True):
 
         external_imports = []
         for filename in matching:
-            i = 0
-            while i < 2:
-                with open(os.path.join(project_path, filename), "r") as readfile:
-                    content = readfile.read()
-                    try:
-                        external_imports.append(extract_external_imports(content))
-                        i = 2
-                    except Exception as e:
-                        if i == 1:
-                            i = 2
-                            print(e)
-                            print(
-                                "External imports extraction failed for file {}: {}".format(
-                                    filename, Exception
-                                )
-                            )
-                        else:
-                            conform_to_pep8(filename)
-                            i += 1
+            with open(filename, 'r') as file:
+                file_content = file.read()
+            # Parse imports from the file content
+            import_names = parse_imports(file_content)
+            # Find the packages for each import
+            package_mapping = find_package_name(import_names)
+            # Filter out None values (standard libraries) and display the necessary packages
+            necessary_packages = {k: v for k, v in package_mapping.items() if v is not None}
+            package_list = list(necessary_packages.values())
+            if verbose:
+                print(f"> {filename}")
+                print(f"> package_list: \n{package_list}")
 
-        external_imports = [
-            imp.split(".")[0] for sublist in external_imports for imp in sublist
-        ]
-        external_imports = list(set(external_imports))
-
-        requirements = "\n".join(external_imports)
+            external_imports.append(package_list)
+        #print(f"> external_imports: \n{external_imports}")
+        # Collapse into a unique list with no duplicates
+        unique_list = list(set(item for sublist in external_imports for item in sublist))
+        requirements = "\n".join(unique_list)
+        if verbose:
+            print(f"> requirements: \n{requirements}")
     else:
         with open(
             "{}/requirements.txt".format(os.getenv("OGRE_DIR", OGRE_DIR)), "r"
@@ -247,6 +310,24 @@ def extract_requirements_from_code(project_path, ext, generate=True):
             requirements = f.read()
     return requirements
 
+def lock_requirements(content):
+    output = []  # List to collect each entry's compiled output
+
+    # Process each line in the provided content
+    for entry in content.strip().splitlines():
+        entry = entry.strip()  # Remove any extra whitespace
+        if entry:  # Ensure the entry is not empty
+            # Run the command and capture the output
+            result = subprocess.run(
+                ['uv', 'pip', 'compile', '--no-annotate', '--no-header', '-'],
+                input=entry,  # Pass entry as a string directly
+                capture_output=True,
+                text=True
+            )
+            output.append(result.stdout)  # Append the result to the output list
+
+    # Join all compiled entries into a single string
+    return ''.join(output)
 
 def append_files_with_ext(project_path, ext, limit, output_file):
     files = list_files(project_path)
@@ -288,8 +369,6 @@ def extract_requirements(provider, contents):
     requirements_emoji()
     if provider == "openai":
         res = extract_requirements_openai(contents)
-    elif provider == "octoai":
-        res = extract_requirements_octoai(contents)
     elif provider == "groq":
         res = extract_requirements_groq(contents)
     return res
@@ -309,29 +388,6 @@ def extract_requirements_openai(contents):
     requirements = completion.choices[0].message.content
 
     return requirements
-
-
-def extract_requirements_octoai(contents):
-    model = os.getenv("OCTOAI_MODEL", OCTOAI_MODEL)
-    prompt = os.getenv("OCTOAI_SECRET_PROMPT", OCTOAI_SECRET_PROMPT)
-    client = OctoAiClient()
-
-    completion = client.chat.completions.create(
-        messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": contents},
-        ],
-        model=model,
-        max_tokens=20000,
-        presence_penalty=0,
-        temperature=0.1,
-        top_p=0.9,
-    )
-
-    requirements = completion.choices[0].message.content
-
-    return requirements
-
 
 # def extract_requirements_groq(contents):
 #    prompt = os.getenv("GROQ_SECRET_PROMPT", GROQ_SECRET_PROMPT)
@@ -358,12 +414,12 @@ def clean_requirements(provider, requirements):
         res = clean_requirements_ogre(requirements)
     elif provider == "ollama":
         res = clean_requirements_ollama(requirements)
-    elif provider == "octoai":
-        res = clean_requirements_octoai(requirements)
     elif provider == "groq":
         res = clean_requirements_groq(requirements)
     elif provider == "mistral":
         res = clean_requirements_mistral(requirements)
+    elif provider == "local":
+        res = requirements
     return res
 
 
@@ -395,7 +451,7 @@ def clean_requirements_gemini(requirements):
     client = googleai.GenerativeModel(model)
     full_prompt = f"{prompt}\n---\n{requirements}"
     # print(f"{full_prompt=}")
-    response = client.generate_content(full_prompt, request_options={"timeout": 1000})
+    response = client.generate_content(full_prompt, request_options={"timeout": TIMEOUT_API_REQUEST})
     requirements = response.text
     # print(f"{requirements=}")
     return requirements
@@ -407,17 +463,27 @@ def clean_requirements_ogre(requirements):
         "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
     )
     api_server = os.getenv("OGRE_API_SERVER", OGRE_API_SERVER)
-    # print(f"{api_server=} {model=} {prompt=}")
-    client = OpenAI(base_url=api_server, api_key="ollama")
-    completion = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": requirements},
-        ],
-    )
-    requirements = completion.choices[0].message.content
+    ogre_token = os.getenv("OGRE_TOKEN", OGRE_TOKEN)
+    
+    # Define headers
+    headers = {
+        "Content-Type": "application/json"
+    }
 
+    # Define the data to be sent in JSON format
+    data = {
+        "model": model,
+        "prompt": prompt + " " + requirements,
+        "ogre_token": ogre_token,
+    }
+
+    # Send the POST request
+    response = requests.post(api_server, headers=headers, json=data)
+
+    # Process the response
+    response_json = response.json()
+    requirements = response_json.get('data')
+    
     return requirements
 
 
@@ -488,31 +554,6 @@ def clean_requirements_groq(requirements):
 
     return response
 
-
-def clean_requirements_octoai(requirements):
-    model = os.getenv("OCTOAI_MODEL", OCTOAI_MODEL)
-    prompt = os.getenv(
-        "CLEAN_REQUIREMENTS_SECRET_PROMPT", CLEAN_REQUIREMENTS_SECRET_PROMPT
-    )
-    client = OctoAiClient()
-
-    completion = client.chat.completions.create(
-        messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": requirements},
-        ],
-        model=model,
-        max_tokens=20000,
-        presence_penalty=0,
-        temperature=0.1,
-        top_p=0.9,
-    )
-
-    requirements = completion.choices[0].message.content
-
-    return requirements
-
-
 def save_requirements(requirements, ogre_dir_path):
     requirements_fullpath = os.path.join(ogre_dir_path, "requirements.txt")
     with open(requirements_fullpath, "w") as f:
@@ -543,8 +584,6 @@ def rewrite_readme(provider, readme):
         res = rewrite_readme_ogre(readme)
     elif provider == "ollama":
         res = rewrite_readme_ollama(readme)
-    elif provider == "octoai":
-        res = rewrite_readme_octoai(readme)
     elif provider == "groq":
         res = rewrite_readme_groq(readme)
     elif provider == "mistral":
@@ -585,7 +624,7 @@ def rewrite_readme_gemini(readme):
         raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
     try:
         client = googleai.GenerativeModel(model)
-        response = client.generate_content(full_prompt)
+        response = client.generate_content(full_prompt, request_options={"timeout": TIMEOUT_API_REQUEST})
         new_readme = response.text
     except Exception as e:
         print(e)
@@ -593,23 +632,35 @@ def rewrite_readme_gemini(readme):
 
 
 def rewrite_readme_ogre(readme):
+
     model = os.getenv("OGRE_MODEL", OGRE_MODEL)
     prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
     api_server = os.getenv("OGRE_API_SERVER", OGRE_API_SERVER)
-    # print(f"{api_server=} {model=} {prompt=}")
+    ogre_token = os.getenv("OGRE_TOKEN", OGRE_TOKEN)
+    
+    full_prompt = prompt + " " + readme
+
+    # Define headers
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    # Define the data to be sent in JSON format
+    data = {
+        "model": model,
+        "prompt": prompt + " " + readme,
+        "ogre_token": ogre_token,
+    }
     new_readme = ""
-    try:
-        client = OpenAI(base_url=api_server, api_key="ollama")
-        completion = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": readme},
-            ],
-        )
-        new_readme = completion.choices[0].message.content
-    except Exception as e:
-        print(e)
+    #try:
+    # Send the POST request
+    response = requests.post(api_server, headers=headers, json=data)
+
+    # Process the response
+    response_json = response.json()
+    new_readme = response_json.get('data')
+    #except Exception as e:
+        #print(e)
     return new_readme
 
 
@@ -632,10 +683,6 @@ def rewrite_readme_ollama(readme):
     except Exception as e:
         print(e)
     return new_readme
-
-
-def rewrite_readme_octoai(readme):
-    raise NotImplementedError("rewrite_readme_octoai is not implemented.")
 
 
 def rewrite_readme_groq(readme):
@@ -879,9 +926,6 @@ def evaluate_readme(provider, readme, verbose):
         return evaluate_readme_ollama(readme, verbose)
     elif provider == "groq":
         return evaluate_readme_groq(readme, verbose)
-    elif provider == "octoai":
-        # return evaluate_readme_octoai(readme, verbose)
-        raise NotImplementedError("This provider is not yet implemented")
     elif provider == "mistral":
         # res = evaluate_readme_mistral(readme, verbose)
         raise NotImplementedError("This provider is not yet implemented")
@@ -930,7 +974,7 @@ def evaluate_readme_gemini(readme, verbose):
         raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
     try:
         client = googleai.GenerativeModel(model)
-        response = client.generate_content(prompt)
+        response = client.generate_content(prompt, request_options={"timeout": TIMEOUT_API_REQUEST})
         score = response.text
         if verbose:
             print(f"\n{score=}\n")
@@ -1106,3 +1150,93 @@ def detect_language_and_framework(project_path: str):
 
     return res
 
+def ask_miniogre(provider, context, question):
+    """
+    Ask questions about the codebase and request suggestions.
+
+    For example: `miniogre ask "<your_question_or_code_issue>" --provider ogre`
+
+    It takes the question, reads the entire repo, and then returns its answer.
+    """
+    ask_emoji()
+
+    if provider == "openai":
+        res = ask_miniogre_openai(context, question)
+    elif provider == "gemini":
+        res = ask_miniogre_gemini(context, question)
+    elif provider == "ogre":
+        res = ask_miniogre_ogre(context, question)
+    elif provider == "ollama":
+        raise NotImplementedError("Provider not implemented.")
+    elif provider == "groq":
+        raise NotImplementedError("Provider not implemented.")
+    elif provider == "mistral":
+        raise NotImplementedError("Provider not implemented.")
+    return res
+
+def ask_miniogre_openai(context, question):
+    model = os.getenv("OPENAI_MODEL", OPENAI_MODEL)
+    prompt = os.getenv("DEFAULT_ASK_PROMPT", DEFAULT_ASK_PROMPT)
+    full_prompt = prompt.format(question)
+    answer = ""
+    if "OPENAI_API_KEY" not in os.environ:
+        raise EnvironmentError("OPENAI_API_KEY environment variable not defined")
+    try:
+        client = OpenAI()
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": full_prompt},
+                {"role": "user", "content": context},
+            ],
+        )
+        answer = completion.choices[0].message.content
+    except Exception as e:
+        print(e)
+    return answer
+
+def ask_miniogre_gemini(context, question):
+    model = os.getenv("GEMINI_MODEL", GEMINI_MODEL)
+    prompt = os.getenv("DEFAULT_ASK_PROMPT", DEFAULT_ASK_PROMPT)
+    full_prompt = prompt.format(question) + "\n---\n" + f"{context}"
+    answer = ""
+    if "GEMINI_API_KEY" not in os.environ:
+        raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
+    try:
+        client = googleai.GenerativeModel(model)
+        response = client.generate_content(full_prompt, request_options={"timeout": TIMEOUT_API_REQUEST})
+        answer = response.text
+    except Exception as e:
+        print(e)
+    return answer
+
+def ask_miniogre_ogre(context, question):
+    model = os.getenv("OGRE_MODEL", OGRE_MODEL)
+    prompt = os.getenv("DEFAULT_ASK_PROMPT", DEFAULT_ASK_PROMPT)
+    api_server = os.getenv("OGRE_API_SERVER", OGRE_API_SERVER)
+    ogre_token = os.getenv("OGRE_TOKEN", OGRE_TOKEN)
+
+    full_prompt = prompt.format(question) + "\n---\n" + f"{context}"
+
+    # Define headers
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    # Define the data to be sent in JSON format
+    data = {
+        "model": model,
+        "prompt": full_prompt,
+        "ogre_token": ogre_token,
+    }
+    answer = ""
+    try:
+        # Send the POST request
+        response = requests.post(api_server, headers=headers, json=data)
+
+        # Process the response
+        response_json = response.json()
+        answer = response_json.get('data')
+    except Exception as e:
+        print(e)
+    return answer

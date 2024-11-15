@@ -1,11 +1,16 @@
 import os
 import platform
 import random
-
 import requests
+
 from dotenv import load_dotenv
+from zoneinfo import ZoneInfo
+from tzlocal import get_localzone
 
 from .constants import *
+
+# Get system timezone
+TIMEZONE = get_localzone().key
 
 load_dotenv()
 
@@ -66,15 +71,12 @@ def _run_welcome(project_path, product, version, ogre_dir, date):
     repo = os.popen("git remote get-url origin").read()
     author = os.popen("git log -1 --pretty=format:'%ae'").read()
     commit = os.popen("git log -1 --pretty=%h").read()
+    commit = ''.join(commit.splitlines())
     # date = datetime.today().strftime("%Y-%m-%d-%H:%M:%S")
 
     os.chdir(original_pwd)
 
-    BOILERPLATE = """
-        echo REPOSITORY = {} 
-        echo COMMIT = {}
-        echo COMMIT_AUTHOR = {} 
-        """.format(
+    BOILERPLATE = """# Git repo info\necho REPOSITORY = {}\necho COMMIT = {}\necho COMMIT_AUTHOR = {}""".format(
         repo[:-1], commit, author
     )
 
@@ -143,7 +145,6 @@ def config_dockerfile(
     REQUIREMENTS_LINE = "RUN cat ./{}/requirements.txt | xargs -L 1 uv pip install --system; exit 0".format(
         os.path.basename(ogre_dir)
     )
-
     if dry:
         print("Dry build -- no requirements will be installed {}".format(baseimage))
 
@@ -155,8 +156,10 @@ def config_dockerfile(
         with open("{}/Dockerfile".format(ogre_dir), "r+") as f:
             content = f.read()
             f.seek(0, 0)
-            f.write("FROM {}".format(baseimage) + content)
+            f.write("FROM {}\nENV TZ={}".format(baseimage, TIMEZONE) + content)
         f.close()
+
+        return os.path.isfile("{}/Dockerfile".format(ogre_dir))
 
     if base:
         print("Building baseimage.")
@@ -173,7 +176,7 @@ def config_dockerfile(
         with open("{}/Dockerfile".format(ogre_dir), "r+") as f:
             content = f.read()
             f.seek(0, 0)
-            f.write("FROM {}".format(baseimage) + content)
+            f.write("FROM {}\nENV TZ={}".format(baseimage, TIMEZONE) + content)
         f.close()
 
         return secure_passphrase
@@ -189,7 +192,6 @@ def config_dockerfile(
                     baseimage
                 )
             )
-
             if baseimage.split('/'[0]) == 'ogrerun': 
                 dockerfile_string = DOCKERFILE
                 with open("{}/Dockerfile".format(ogre_dir), "w") as f:
@@ -198,7 +200,7 @@ def config_dockerfile(
                 with open("{}/Dockerfile".format(ogre_dir), "r+") as f:
                     content = f.read()
                     f.seek(0, 0)
-                    f.write("FROM {}".format(baseimage) + content)
+                    f.write("FROM {}\nENV TZ={}".format(baseimage, TIMEZONE) + content)
                     # Find last line
                     f.seek(0, 2)
                     # while f.read(1) != b'\n':
@@ -215,8 +217,7 @@ def config_dockerfile(
                     f.seek(0, 0)
                     f.write("FROM {}".format(baseimage) + content)
                 f.close()
-    return os.path.isfile("{}/Dockerfile".format(ogre_dir))
-
+        return os.path.isfile("{}/Dockerfile".format(ogre_dir))
 
 def config_baseimage(framework = None):
 
