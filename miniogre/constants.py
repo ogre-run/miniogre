@@ -252,6 +252,14 @@ LANGUAGES = {
     "Go": [".go"],  # Added Go here
 }
 
+FRAMEWORKS_LIST = [
+    "React",
+    "Next.js",
+    "Vue.js",
+    "Angular",
+    "Svelte"
+]
+
 # Dictionary to identify frameworks based on specific files
 JS_TS_FRAMEWORKS = {
     "React": ["package.json", ["react"]],
@@ -270,19 +278,27 @@ FRAMEWORK_DOCKER_CMD = {
     "Svelte": "",
     None: "bash",
 }
-
-WORDLIST_URL = "https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt"
-
-OGRE_DIR = "ogre_dir"
-OGRE_BASEIMAGE = "ogrerun/base:ubuntu22.04-{}"
 FRAMEWORK_BASEIMAGE = {
         "React": "node:latest",
         "Next.js": "node:latest",
         "Vue.js": "node:latest",
         "Angular": "node:latest",
         "Svelte": "node:latest",
-        }
+        None: "ubuntu:22.04",
+}
+FRAMEWORK_DOCKERFILE = {
+        "React": "DOCKERFILE_NODE",
+        "Next.js": "DOCKERFILE_NODE",
+        "Vue.js": "DOCKERFILE_NODE",
+        "Angular": "DOCKERFILE_NODE",
+        "Svelte": "DOCKERFILE_NODE",
+        None: "DOCKERFILE",
+}
 
+WORDLIST_URL = "https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt"
+
+OGRE_DIR = "ogre_dir"
+OGRE_BASEIMAGE = "ogrerun/base:ubuntu22.04-{}"
 OPENAI_MODEL = "gpt-4o"
 OPENAI_SECRET_PROMPT = """You are a Python requirements generator.
 You should generate the contents of a Python requirements file (raw text only) taking into account the text sent by the user.

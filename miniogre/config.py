@@ -134,7 +134,13 @@ def config_bashrc_baseimage(ogre_dir):
 
 
 def config_dockerfile(
-    project_dir, project_name, ogre_dir, baseimage, dry=False, base=False
+    project_dir, 
+    project_name,
+    framework,
+    ogre_dir, 
+    baseimage, 
+    dry=False, 
+    base=False
 ):
     """
     Check for existence of Dockerfile. If it exists, nothing is done. If it
@@ -192,8 +198,9 @@ def config_dockerfile(
                     baseimage
                 )
             )
-            if baseimage.split('/'[0]) == 'ogrerun': 
+            if framework == None: 
                 dockerfile_string = DOCKERFILE
+                print
                 with open("{}/Dockerfile".format(ogre_dir), "w") as f:
                     f.write(dockerfile_string.format(project_name))
                 f.close()
@@ -203,11 +210,9 @@ def config_dockerfile(
                     f.write("FROM {}\nENV TZ={}".format(baseimage, TIMEZONE) + content)
                     # Find last line
                     f.seek(0, 2)
-                    # while f.read(1) != b'\n':
-                    #    f.seek(-2, 1)
                     f.write("{}".format(REQUIREMENTS_LINE))
                 f.close()
-            else:
+            elif framework in FRAMEWORKS_LIST:
                 dockerfile_string = DOCKERFILE_NODE
                 with open("{}/Dockerfile".format(ogre_dir), "w") as f:
                     f.write(dockerfile_string.format(project_name))
@@ -215,7 +220,7 @@ def config_dockerfile(
                 with open("{}/Dockerfile".format(ogre_dir), "r+") as f:
                     content = f.read()
                     f.seek(0, 0)
-                    f.write("FROM {}".format(baseimage) + content)
+                    f.write("FROM {}\nENV TZ={}".format(baseimage, TIMEZONE) + content)
                 f.close()
         return os.path.isfile("{}/Dockerfile".format(ogre_dir))
 
