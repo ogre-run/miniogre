@@ -734,13 +734,14 @@ def save_readme(readme, ogre_dir_path):
 def build_docker_image(
     dockerfile, image_name, host_platform=None, verbose=False, cache=False
 ):
-    # build docker image
+    # TODO: Generate unique tag to avoid name clashing among different users
+    # tag = uuid.uuid4().hex
 
     if host_platform == None:
         platform_name = "linux/{}".format(platform.machine())
     else:
         platform_name = host_platform
-    image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
+    image_name = "miniogre/{}:latest".format(image_name.lower())
 
     build_emoji()
     print("   platform = {}".format(platform_name))
@@ -780,24 +781,20 @@ def build_docker_image(
     return out
 
 
-def spin_up_container(image_name, project_path, port_map):
+def spin_up_container(image_name, project_path, port_map, framework):
     # spin up container
     spinup_emoji()
 
     project_name = image_name
     container_name = "miniogre-{}".format(image_name.lower())
     image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
-    # cmd = "uv venv; source .venv/bin/activate; cat ./{}/requirements.txt | xargs -L 1 uv pip install; exit 0;"
-    # cmd = "cat ./ogre_dir/requirements.txt | xargs -L 1 uv pip install; exit 0"
-    spin_up_cmd = "docker run -it --rm -v {}:/opt/{} -p {} --name {} {} bash".format(
-        project_path, project_name, port_map, container_name, image_name
+    docker_cmd = FRAMEWORK_DOCKER_CMD[framework]
+    spin_up_cmd = "docker run -it --rm -v {}:/opt/{} -p {} --name {} {} {}".format(
+        project_path, project_name, port_map, container_name, image_name, docker_cmd
     )
 
     print("   spin up command = {}".format(spin_up_cmd))
     subprocess.call(spin_up_cmd.split())
-    # p = subprocess.Popen(spin_up_cmd, stdout=subprocess.PIPE, shell=True)
-    # (out, err) = p.communicate()
-    # p_status = p.wait()
 
     return 0
 
@@ -1104,6 +1101,55 @@ def delete_tarfile(file_path):
     except Exception as e:
         print(f"An error occurred while trying to delete the file: {e}")
 
+def detect_language_and_framework(project_path: str):
+    """
+    Detect programming language(s) and framework of a source code.
+
+    Returns a dictionary in the format 
+    {'languages': [], 'framework': 'NAME_OF_FRAMEWORK'}
+    """
+
+    # Dictionary to map languages to their file extensions
+    languages = LANGUAGES
+
+    # Dictionary to identify frameworks based on specific files
+    js_ts_frameworks = JS_TS_FRAMEWORKS
+    detected_language = set()
+    detected_framework = None
+
+    # Walk through the project directory and examine the files
+    for root, dirs, files in os.walk(project_path):
+        for file in files:
+            # Check language based on file extension
+            for language, extensions in languages.items():
+                if any(file.endswith(ext) for ext in extensions):
+                    detected_language.add(language)
+
+        # Check for JavaScript/TypeScript frameworks
+        if "package.json" in files:
+            package_json_path = os.path.join(root, "package.json")
+            with open(package_json_path, 'r', encoding='utf-8') as f:
+                package_content = f.read()
+
+            # Check for framework-specific dependencies
+            # Special case for Angular
+            if "angular.json" in files:
+                detected_framework = "Angular"
+            else:
+                for framework, (config_file, keywords) in js_ts_frameworks.items():
+                    if config_file in files:
+                        for keyword in keywords:
+                            if keyword in package_content:
+                                detected_framework = framework
+
+    res = {
+        "languages": list(detected_language),
+        "framework": detected_framework if detected_framework else None
+    }
+    print(res)
+
+    return res
+
 def ask_miniogre(provider, context, question):
     """
     Ask questions about the codebase and request suggestions.
@@ -1127,7 +1173,6 @@ def ask_miniogre(provider, context, question):
     elif provider == "mistral":
         raise NotImplementedError("Provider not implemented.")
     return res
-
 
 def ask_miniogre_openai(context, question):
     model = os.getenv("OPENAI_MODEL", OPENAI_MODEL)
@@ -1195,4 +1240,3 @@ def ask_miniogre_ogre(context, question):
     except Exception as e:
         print(e)
     return answer
-

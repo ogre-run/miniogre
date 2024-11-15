@@ -192,31 +192,41 @@ def config_dockerfile(
                     baseimage
                 )
             )
-
-            dockerfile_string = DOCKERFILE
-
-            with open("{}/Dockerfile".format(ogre_dir), "w") as f:
-                f.write(dockerfile_string.format(project_name))
-            f.close()
-            with open("{}/Dockerfile".format(ogre_dir), "r+") as f:
-                content = f.read()
-                f.seek(0, 0)
-                f.write("FROM {}\nENV TZ={}".format(baseimage, TIMEZONE) + content)
-                # Find last line
-                f.seek(0, 2)
-                # while f.read(1) != b'\n':
-                #    f.seek(-2, 1)
-                f.write("{}".format(REQUIREMENTS_LINE))
-            f.close()
-
+            if baseimage.split('/'[0]) == 'ogrerun': 
+                dockerfile_string = DOCKERFILE
+                with open("{}/Dockerfile".format(ogre_dir), "w") as f:
+                    f.write(dockerfile_string.format(project_name))
+                f.close()
+                with open("{}/Dockerfile".format(ogre_dir), "r+") as f:
+                    content = f.read()
+                    f.seek(0, 0)
+                    f.write("FROM {}\nENV TZ={}".format(baseimage, TIMEZONE) + content)
+                    # Find last line
+                    f.seek(0, 2)
+                    # while f.read(1) != b'\n':
+                    #    f.seek(-2, 1)
+                    f.write("{}".format(REQUIREMENTS_LINE))
+                f.close()
+            else:
+                dockerfile_string = DOCKERFILE_NODE
+                with open("{}/Dockerfile".format(ogre_dir), "w") as f:
+                    f.write(dockerfile_string.format(project_name))
+                f.close()
+                with open("{}/Dockerfile".format(ogre_dir), "r+") as f:
+                    content = f.read()
+                    f.seek(0, 0)
+                    f.write("FROM {}".format(baseimage) + content)
+                f.close()
         return os.path.isfile("{}/Dockerfile".format(ogre_dir))
 
-
-def config_baseimage():
+def config_baseimage(framework = None):
 
     platform_machine = "{}".format(platform.machine())
-    baseimage = (os.getenv("OGRE_BASEIMAGE", OGRE_BASEIMAGE)).format(platform_machine)
-
+    if framework == None:
+        baseimage = (os.getenv("OGRE_BASEIMAGE", OGRE_BASEIMAGE)).format(platform_machine)
+    else:
+        print("{} framework identified. Picking a proper baseimage.".format(framework))
+        baseimage = FRAMEWORK_BASEIMAGE[framework]
     return baseimage
 
 
