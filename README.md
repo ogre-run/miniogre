@@ -1,74 +1,69 @@
 # miniogre
 
-**miniogre** automates the management of software dependencies with AI, to ensure your Python code runs on any computer. It is a command-line application that analyzes a Python codebase to automatically generate a Dockerfile, requirements.txt file, and SBOM files, expediting the process of packaging any Python application. Additionally, it is able to update the README (documentation) file to comply with what really happens in the source code.
+**miniogre** is a command-line tool that helps developers automate the process of setting up reproducible Python environments. It leverages AI to analyze a Python codebase and automatically generate necessary files such as `Dockerfile`, `requirements.txt`, and SBOM (Software Bill of Materials) files.  This simplifies packaging Python applications and significantly reduces the time spent on dependency management.  It can even update your README file to accurately reflect the current state of your project.
 
 ![miniogre_gif_33](https://github.com/ogre-run/miniogre/assets/6482944/0850dbb5-6634-4f08-80a9-6fd8e3ca8e03)
 
-## Why miniogre
+## Why miniogre?
 
-Developers waste hours per week managing software dependencies. This is particularly true in AI development where many Python packages lack proper documentation and have outdated configuration files. **Miniogre empowers developers** to automatically identify, update, and install the necessary software dependencies to get code to work. Unlike other tools that need manual setup, **miniogre uses AI to quickly handle Python dependencies setup**, cutting down "dependency hunting" from hours a week to just minutes.
+Managing software dependencies is a tedious and time-consuming task for developers. This is especially problematic in AI/ML development, where rapidly evolving Python packages often have poor documentation or outdated configuration files.  miniogre addresses this issue by using AI to automate the dependency setup process. This reduces the time spent "dependency hunting" from hours to minutes, allowing developers to focus on writing code instead of wrestling with environments.
 
 ## How it Works
 
-Upon running the application, it carries out the following steps:
+miniogre performs the following actions:
 
-- The project directory is scrutinized to identify the primary code language.
-- The README file is located and read.
-- The source code is crawled to obtain a preliminary list of requirements.
-- A large language model (LLM) provider (choices are `openai`, `mistral`, `groq`, `octoai`) is used to refine the list of requirements and generate the final content for the `requirements.txt` file.
-- The `requirements.txt`, `Dockerfile`, and `sbom.json` files are created.
-- A Docker image of the application is built.
-- An ogre container is spun up.
-
-Two main commands can be run, with the `miniogre/main.py` file serving as the entry point.
-
-- **run**: Executes a series of actions, including configuring directories and files (bashrc, Dockerfile), generating requirements, building a Docker image, and spinning up a container.
-- **readme**: Constructs a new `README.md` file that mirrors the operations observed within the source code.
-
-For more in-depth execution details, refer to `miniogre/main.py`,`miniogre/actions.py`, and `miniogre/config.py`.
+1. **Identifies the primary code language:**  miniogre analyzes the project directory. Currently optimized for Python projects.
+2. **Reads the README file:** If a README exists, miniogre reads it to gather information about the project.
+3. **Crawls the source code:**  The code is analyzed to identify import statements and extract a preliminary list of dependencies.
+4. **Refines the requirements:**  miniogre leverages a Large Language Model (LLM) of your choice (OpenAI, Mistral, Groq, or OctoAI) to refine the dependency list and create a `requirements.txt` file.  The LLM helps to resolve complex dependencies and ensure compatibility. 
+    * Note: current implementation uses `uv pip compile` to lock requirements, removing the need for an LLM cleaning step for dependency generation.
+5. **Generates supporting files:** It generates a `Dockerfile` enabling containerization of your project and an SBOM (`sbom.json`) documenting all project dependencies.
+6. **Builds a Docker image (optional):**  miniogre can build a Docker image of the application, facilitating easy deployment and sharing.
+7. **Spins up a container (optional):**  miniogre can run the application in a Docker container.
 
 ## Requirements
 
-To use miniogre effectively, ensure the following are installed:
-
-- Python 3: Miniogre is developed in Python. If it's not already installed, [get Python here](https://www.python.org/downloads/).
-- Docker: Docker is a platform used to eliminate "works on my machine" problems when collaborating on code with co-workers. If it's not already installed, [get Docker here](https://docs.docker.com/get-docker/).
-- pip or pipx: These are python package installers used to install miniogre. If they are not already installed, [get pipx here](https://pipxproject.github.io/pipx/installation/) or [pip here](https://pip.pypa.io/en/stable/installing/).
-- An API token of at least one of the following LLM inference providers:
-    - `openai`: type `export OPENAI_API_KEY=<YOUR_TOKEN>` on the terminal;
-    - `mistral`: type `export MISTRAL_API_KEY=<YOUR_TOKEN>` on the terminal;
-    - `groq`: type `export GROQ_SECRET_ACCESS_KEY=<YOUR_TOKEN>` on the terminal;
-    - `octoai`: type `export OCTOAI_TOKEN=<YOUR_TOKEN>` on the terminal.
-
-OpenAI token in the environment:
+- **Python 3.10 or higher:**  miniogre is written in Python and requires this version. [Download Python](https://www.python.org/downloads/).
+- **Docker:**  Containerization platform for consistent environments. [Download Docker](https://docs.docker.com/get-docker/).
+- **pipx (recommended) or pip:** Python package installers.  pipx is recommended for isolated installations.  [Download pipx](https://pipxproject.github.io/pipx/installation/).  [Download pip](https://pip.pypa.io/en/stable/installing/).
+- **LLM API Key:** You need an API key for at least one of the following LLM providers:
+    - **OpenAI:**  Set your API key using `export OPENAI_API_KEY=<YOUR_TOKEN>`.
+    - **Mistral AI:** Set your API key using `export MISTRAL_API_KEY=<YOUR_TOKEN>`.
+    - **Groq:** Set your API key using `export GROQ_SECRET_ACCESS_KEY=<YOUR_TOKEN>`.
+    - **Ogre:** Set your token using `export OGRE_TOKEN=<YOUR_TOKEN>`.
 
 ## Installation
-Miniogre can be installed either by using `pip` or `pipx`:
-- `pip install miniogre`
-- `pipx install miniogre`
 
-You can also build the wheel from the source and then install it on your system. We provide a handy script `install.sh` to accomplish that.
+Miniogre can be installed using pipx or pip:
+
+- With pipx (recommended): `pipx install miniogre`
+- With pip: `pip install miniogre`
+
+You can also build from source using Poetry: `poetry build && pipx install dist/*.whl` (or `pip install dist/*.whl`).  A helper script, `install.sh`, is provided in the repository to simplify this process.
+
 
 ## Usage
 
-After installation, go inside the project folder and run:
+1. **Navigate to Project Directory:** Open your terminal and go to the root directory of your Python project.
 
-`miniogre run`
+2. **Run miniogre:** Use the following command to analyze your project and generate the reproducibility artifacts:
 
-This will analyze the project, generate `ogre_dir/Dockerfile`, `ogre_dir/requirements.txt`, and `ogre_dir/sbom.json` and build a Docker image.
+   ```bash
+   miniogre run
+   ```
+By default, it will generate the `Dockerfile`, `requirements.txt`, and `sbom.json` in an `ogre_dir` directory, build a Docker image named `miniogre/<your_project_name>:latest`, and then start a container. You can customize the LLM provider, baseimage, port mapping and more using command-line options. If you don't want to build a container, simply add the `--no-container` flag.
+
 
 ### Commands
-- `run`: Executes a series of actions, including configuring directories and files (bashrc, Dockerfile), generating requirements, building a Docker image, and spinning up a container.
-- `readme`: Analyzes the source code to generate a new README.md file that reflects the actual operations in the source code.
-- `eval`: Determines the reproducibility score of the repository by evaluating the README quality.
-- `spinup`: Spins up a container if an image was previously built with the run command.
-- `version`: Displays the current version of miniogre.
+- `run`: Executes the full miniogre pipeline, generating required files, building a Docker image, and optionally spinning up a container.
+- `readme`: Generates or updates the project's `README.md` file based on source code analysis.
+- `eval`: Evaluates the quality of the project's README file on a scale of 1-10.
+- `spinup`: Spins up a Docker container of the application if an image has already been built.
+- `version`: Displays the installed version of miniogre.
+- `build-ogre-image`: Builds a base Docker image with miniogre pre-installed (primarily for deployments to environments like Google Cloud Run).
+- `cloud`: Sends the project folder as a tarball to a terminal server in the cloud (e.g. `terminal.ogre.run`).
+- `ask`: Asks a question about the project or a code issue (still experimental).
 
-### Build Ogre base image
-
-Useful to create a Docker image that can be deployed on Google Cloud Run:
-
-`miniogre build-ogre-image --host-platform linux/amd64 --baseimage ogrerun/base:ubuntu22.04-amd64 --verbose --no-cache`
 
 ## Contributing
-Contributions to improve this resource are more than welcome. For inquiries, contact the maintainers at [contact@ogre.run](contact@ogre.run).
+Contributions are welcome!  For inquiries, contact [contact@ogre.run](mailto:contact@ogre.run).
