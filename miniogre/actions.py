@@ -11,6 +11,7 @@ import sys
 import importlib.metadata
 from typing import Dict, List
 from string import Template
+from importlib.resources import files as importlib_files
 
 import emoji
 import google.generativeai as googleai
@@ -324,10 +325,17 @@ def lock_requirements(content):
                 capture_output=True,
                 text=True
             )
-            output.append(result.stdout)  # Append the result to the output list
+            elements_list = result.stdout.strip().split('\n')
+            if elements_list != "":
+                output.append(elements_list)  # Append the result to the output list
 
+    # Remove duplicates
+    unique_list = list(set(item for sublist in output for item in sublist))
+    # Remove empty rows
+    unique_list = [item for item in unique_list if item.strip() not in ["", " "]]
+    res = "\n".join(unique_list)
     # Join all compiled entries into a single string
-    return ''.join(output)
+    return ''.join(res)
 
 def append_files_with_ext(project_path, ext, limit, output_file):
     files = list_files(project_path)
@@ -562,15 +570,21 @@ def save_requirements(requirements, ogre_dir_path):
 
 
 def count_tokens(string) -> int:
-    from importlib.resources import files
-
-    tiktoken_cache_dir = str(files("miniogre").joinpath("encodings"))
-    os.environ["TIKTOKEN_CACHE_DIR"] = tiktoken_cache_dir
-    cache_key = "9b5ad71b2ce5302211f9c61530b329a4922fc6a4"  # cl100k_base
-    assert os.path.exists(os.path.join(tiktoken_cache_dir, cache_key))
-    encoding = tiktoken.get_encoding("cl100k_base")
-    num_tokens = len(encoding.encode(string))
-    return num_tokens
+    """
+    Count tokens in the input string.
+    """
+    try:
+        tiktoken_cache_dir = str(importlib_files("miniogre").joinpath("encodings"))
+        os.environ["TIKTOKEN_CACHE_DIR"] = tiktoken_cache_dir
+        cache_key = "9b5ad71b2ce5302211f9c61530b329a4922fc6a4"  # cl100k_base
+        assert os.path.exists(os.path.join(tiktoken_cache_dir, cache_key))
+        encoding = tiktoken.get_encoding("cl100k_base")
+        num_tokens = len(encoding.encode(string))
+        res = num_tokens
+    except Exception as e:
+        print(e)
+        res = e
+    return res
 
 
 def rewrite_readme(provider, readme):
