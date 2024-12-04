@@ -9,6 +9,7 @@ import requests
 import uuid
 import sys
 import importlib.metadata
+from pathlib import Path
 from typing import Dict, List
 from string import Template
 from importlib.resources import files as importlib_files
@@ -610,22 +611,54 @@ def rewrite_readme_openai(readme):
     prompt = os.getenv("REWRITE_README_PROMPT", REWRITE_README_PROMPT)
     # print(f"{model=} {prompt=}")
     new_readme = ""
+    rewritten_chunks = []
+    previous_summary = ""  # To hold the summary of the last processed chunk
+    
+    # Check if input_path is a file or a directory
+    input_path = Path(readme)
+    if input_path.is_file():
+        # Single file: Read content and split into chunks
+        with open(input_path, 'r', encoding='utf-8') as file:
+            readme = file.read()
+    elif input_path.is_dir():
+        # Directory: Read all chunk files and sort by name
+        chunk_files = sorted(input_path.glob("*.txt"))  # Sort to ensure correct order
+        readme = [file.read_text(encoding='utf-8') for file in chunk_files]
+    else:
+        raise ValueError("Invalid input_path: Must be a text file or a folder containing text chunks.")
+
+
     if "OPENAI_API_KEY" not in os.environ:
         raise EnvironmentError("OPENAI_API_KEY environment variable not defined")
-    try:
-        client = OpenAI()
-        completion = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": readme},
-            ],
-        )
-        # print(completion)
-        new_readme = completion.choices[0].message.content
-    except Exception as e:
-        print(e)
-    return new_readme
+    print("pause here")
+    input()
+    for i, chunk in enumerate(readme):
+        print(f"chunk {i}")
+        try:
+            # Construct the messages with context
+            messages = [
+                    {"role": "system", "content": prompt},
+            ]
+            if previous_summary:
+                    messages.append(
+                        {"role": "system", "content": f"Summary of previous chunk: {previous_summary}"}
+                    )
+            messages.append({"role": "user", "content": chunk})
+            
+            client = OpenAI()
+            completion = client.chat.completions.create(
+                model=model,
+                messages=messages,
+            )
+            rewritten_chunk = completion.choices[0].message.content
+            new_readme += rewritten_chunk + "\n\n"
+       
+            # Update previous summary
+            previous_summary = rewritten_chunk[:400]  # Use the first 400 characters as the summary
+        except Exception as e:
+            print(f"Error processing chunk {i}: {e}")
+            new_readme += f"Error processing this chunk {i}: {e}\n\n"
+    return new_readme.strip()
 
 
 def rewrite_readme_gemini(readme):
@@ -891,15 +924,16 @@ def run_gptify(repo_path):
     if not os.path.exists("ogre_dir"):
         os.mkdir("ogre_dir")
 
-    gptrepo_cmd = 'gptify {} --output "ogre_dir/gptify_output.txt"'.format(repo_path)
+    gptrepo_cmd = 'gptify {} --chunk --max_tokens 100000 --overlap 200 --output "ogre_dir/gptify_output.txt" --output_dir "ogre_dir/gptify_chunks"'.format(repo_path)
     p = subprocess.Popen(
         gptrepo_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
     )
     (out, err) = p.communicate()
     p_status = p.wait()
 
-    with open("ogre_dir/gptify_output.txt", "r") as f:
-        return f.read()
+    return "ogre_dir/gptify_chunks"
+    #with open("ogre_dir/gptify_output.txt", "r") as f:
+    #    return f.read()
 
 
 def cleanup():
