@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "miniogre"
-version = "0.11.2"
+version = "0.11.3"
 description = "miniogre: from source code to reproducible environment, in seconds."
 readme = "README.md"
 authors = ["Wilder Lopes <wilder@ogre.run>"]
@@ -29,6 +29,7 @@ gptify = "^0.3.4"
 tiktoken = "0.6.0"
 google-generativeai = "0.5.2"
 tzlocal = "^5.2"
+uv = "^0.5.7"
 
 [tool.poetry.dev-dependencies]
 
