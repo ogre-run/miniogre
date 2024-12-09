@@ -234,24 +234,29 @@ def config_baseimage(framework = None):
         baseimage = FRAMEWORK_BASEIMAGE[framework]
     return baseimage
 
-
 def config_requirements(project_dir, ogre_dir, force=False):
+    # Define potential variations of the requirements file
+    potential_files = ["requirements.txt", "requirement.txt"]
 
-    # Check if requirements.txt is in the root folder
-    if os.path.isfile("{}/requirements.txt".format(project_dir)):
+    # Check for any existing file matching the potential variations
+    existing_file = None
+    for filename in potential_files:
+        if os.path.isfile(os.path.join(project_dir, filename)):
+            existing_file = filename
+            break
+
+    if existing_file:
         if force:
-            print(
-                "   requirements.txt exists in {}, but it will be OVERWRITTEN".format(
-                    project_dir
-                )
+            print(f"{existing_file} exists in {project_dir}, but it will be OVERWRITTEN"
             )
             return True
-        print("   requirements.txt already exists and it will be reused.")
+        print(f"{existing_file} already exists and will be reused.")
         os.popen(
-            "cp {}/requirements.txt {}/requirements.txt".format(project_dir, ogre_dir)
+            f"cp {os.path.join(project_dir, existing_file)} {os.path.join(ogre_dir, 'requirements.txt')}"
         )
         res = False
     else:
-        print("   requirements.txt does not exist. miniogre will create one for you.")
+        print("No requirements file found. miniogre will create one for you.")
         res = True
+
     return res
