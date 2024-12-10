@@ -149,6 +149,8 @@ def run(
     config_bashrc(project_path, ogre_dir_path, None, None, None)
     if baseimage == "auto":
         baseimage_name = config_baseimage(lang_frame['framework'])
+    else:
+        baseimage_name = baseimage
     config_dockerfile(project_path, project_name, lang_frame['framework'],
                       ogre_dir_path, baseimage_name, dry)
     create_sbom(project_name, project_path, sbom_format, verbose)
