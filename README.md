@@ -36,7 +36,7 @@ miniogre performs the following actions:
 
 Miniogre can be installed using pipx or pip:
 
-- With pipx (recommended): `pipx install miniogre`
+- With pipx (recommended for environment isolation): `pipx install --include-deps miniogre`
 - With pip: `pip install miniogre`
 
 You can also build from source using Poetry: `poetry build && pipx install dist/*.whl` (or `pip install dist/*.whl`).  A helper script, `install.sh`, is provided in the repository to simplify this process.
