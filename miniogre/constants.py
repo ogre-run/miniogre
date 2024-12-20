@@ -255,6 +255,7 @@ LANGUAGES = {
 FRAMEWORKS_LIST = [
     "React",
     "Next.js",
+    "JavaScript",
     "Vue.js",
     "Angular",
     "Svelte"
@@ -264,6 +265,7 @@ FRAMEWORKS_LIST = [
 JS_TS_FRAMEWORKS = {
     "React": ["package.json", ["react"]],
     "Next.js": ["package.json", ["next"]],
+    "JavaScript": ["package.json", ["node"]],
     "Vue.js": ["package.json", ["vue"]],
     "Angular": ["angular.json", ["angular"]],
     "Svelte": ["package.json", ["svelte"]],
@@ -273,6 +275,7 @@ JS_TS_FRAMEWORKS = {
 FRAMEWORK_DOCKER_CMD = {
     "React": "",
     "Next.js": "",
+    "JavaScript": "bash",
     "Vue.js": "",
     "Angular": "",
     "Svelte": "",
@@ -281,6 +284,7 @@ FRAMEWORK_DOCKER_CMD = {
 FRAMEWORK_BASEIMAGE = {
         "React": "node:latest",
         "Next.js": "node:latest",
+        "JavaScript": "node:latest",
         "Vue.js": "node:latest",
         "Angular": "node:latest",
         "Svelte": "node:latest",
@@ -289,6 +293,7 @@ FRAMEWORK_BASEIMAGE = {
 FRAMEWORK_DOCKERFILE = {
         "React": "DOCKERFILE_NODE",
         "Next.js": "DOCKERFILE_NODE",
+        "JavaScript": "DOCKERFILE_NODE",
         "Vue.js": "DOCKERFILE_NODE",
         "Angular": "DOCKERFILE_NODE",
         "Svelte": "DOCKERFILE_NODE",
