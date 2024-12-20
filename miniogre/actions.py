@@ -13,9 +13,11 @@ from typing import Dict, List
 from string import Template
 from importlib.resources import files as importlib_files
 
+import uv
 import emoji
 import google.generativeai as googleai
 import tiktoken
+from io import StringIO
 from groq import Groq
 # from groq.cloud.core import Completion
 from mistralai.client import MistralClient
@@ -318,24 +320,29 @@ def lock_requirements(content):
     for entry in content.strip().splitlines():
         entry = entry.strip()  # Remove any extra whitespace
         if entry:  # Ensure the entry is not empty
-            # Run the command and capture the output
-            result = subprocess.run(
-                ['uv', 'pip', 'compile', '--no-annotate', '--no-header', '-'],
-                input=entry,  # Pass entry as a string directly
-                capture_output=True,
-                text=True
+            # Simulate the entry as stdin for pip-compile
+            input_stream = StringIO(entry)
+            output_stream = StringIO()
+            
+            # Setup options for `uv` pip-compile
+            options = uv.Options(
+                no_annotate=True,
+                no_header=True,
+                filename=None  # Simulates '-' for stdin input
             )
-            elements_list = result.stdout.strip().split('\n')
-            if elements_list != "":
-                output.append(elements_list)  # Append the result to the output list
+            
+            # Run pip-compile programmatically
+            uv.pip_compile(options=options, stdin=input_stream, stdout=output_stream)
+            
+            # Collect the compiled output
+            compiled_output = output_stream.getvalue().strip()
+            if compiled_output:
+                output.extend(compiled_output.splitlines())
 
-    # Remove duplicates
-    unique_list = list(set(item for sublist in output for item in sublist))
-    # Remove empty rows
-    unique_list = [item for item in unique_list if item.strip() not in ["", " "]]
-    res = "\n".join(unique_list)
-    # Join all compiled entries into a single string
-    return ''.join(res)
+    # Remove duplicates and empty lines
+    unique_list = list(set(item for item in output if item.strip()))
+    # Join all unique entries into a single string
+    return '\n'.join(unique_list)
 
 def append_files_with_ext(project_path, ext, limit, output_file):
     files = list_files(project_path)
