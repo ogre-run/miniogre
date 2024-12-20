@@ -225,17 +225,31 @@ def build_ogre_image(
 
 @app.command()
 def cloud(
-    destination: str = "https://fileserver.ogrerun.xyz",
+    proxy: str = "https://fileserver.ogrerun.xyz",
 ):
     """
-    Move local project folder to terminal in the cloud (terminal.ogre.run)
+    Move local project folder to an enviroment in another computer.
+    Ideally, that computer has more computational power and you can continously run
+    a service from there (that's why one would use the cloud).
+
+    Proxy is just a service that process your project folder using a standalone
+    version of miniogre. It generates the reproducibility artifacts (e.g. README).
+
+    Once the processing is done, a tarball of your project containing the artifacts
+    is generated and stored somewhere (that's up to the proxy to define that).
+
+    For example, if you use th default proxy above, the tarball is temporarily stored
+    in the proxy filesystem and then relayed to a cloud terminal in (terminal.ogre.run).
+    After that, the tarball is deleted.
+
+    You can create your own proxy with your own rules (instructions TBD).
     """
 
     display_figlet()
     starting_emoji()
 
     filename = create_tar(project_path, 'ogre-tarfile')
-    res = send_tarfile_to_server(filename, destination)
+    res = send_tarfile_to_server(filename, proxy)
     delete_tarfile(filename)
 
 if __name__ == "__main__":
