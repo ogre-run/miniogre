@@ -1077,14 +1077,22 @@ def send_tarfile_to_server(file_path, server_url):
     :param server_url: URL of the server to send the file to.
     :return: Response from the server.
     """
+    
+    ogre_token = os.getenv("OGRE_TOKEN", OGRE_TOKEN)
+    
     try:
         # Open the tarfile in binary mode
         with open(file_path, 'rb') as file:
             # Create a dictionary to hold the file data
             files = {'file': (file_path, file)}
+            
+            # Define the data to be sent in JSON format
+            data = {
+                "ogre_token": ogre_token,
+            }
 
             # Send the POST request to the server
-            response = requests.post(server_url, files=files)
+            response = requests.post(server_url, files=files, data={"json_payload": json.dumps(data)})
 
             # Check if the request was successful
             if response.status_code == 200:
