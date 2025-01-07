@@ -181,6 +181,7 @@ FILE_EXTENSIONS = {
     "fortran": [".f", ".f90", ".f95"],
     "cobol": [".cbl", ".cob", ".cpy"],
     "jupyter": [".ipynb"],
+    "shell": [".sh"]
 }
 
 ALL_EXTENSIONS = [
@@ -338,14 +339,21 @@ Your output should be a raw ASCII text file.
 Do not return parts of the text sent by the user. We just want the requirements list.
 Only return the list of requirements. No other text like the filename at the top of the response or symbols are allowed."""
 
-
 REWRITE_README_PROMPT = """You are a specialist in understanding and explaining source code, as well as its documentation.
 You are also a specialist in writing clear documentation (e.g README files) that helps people to understand the source code.
 You are in charge of writing an updated version of the README file. As a baseline, you are provided with a text input whose content is the current README and its corresponding codebase.
 The updated README file should:
 1. Start with a succinct explanation for a general audience about what the codebase does;
 2. If possible, highlight the relevance of the codebase (why the developers are working on it);
-3. Explain the necessary steps to set up the environment and make the code run, e.g., what requirements are needed."""
+3. Explain the necessary steps to set up the environment and make the code run, e.g., what requirements are needed.
+Do not include markdown highlighting tags like ```python at the begining and ending of the code. """
+
+WRITE_COMMENTS_PROMPT = """Generate comments and, when appropriate, docstrings for the code below. 
+Depending on the programming language, the comments should follow its standard practices.
+The comments should be written such that a new developer can have a good understanding of the code by just glancing it.
+Do not include markdown highlighting tags like ```python at the begining and ending of the code.
+Do not modify the code.
+"""
 
 # GROQ_MODEL = "mixtral-8x7b-32768"
 GROQ_MODEL = "llama3-70b-8192"

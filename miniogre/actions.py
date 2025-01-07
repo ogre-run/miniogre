@@ -9,6 +9,7 @@ import requests
 import uuid
 import sys
 import importlib.metadata
+from pathlib import Path
 from typing import Dict, List
 from string import Template
 from importlib.resources import files as importlib_files
@@ -56,6 +57,9 @@ def generate_context_emoji():
 
 def readme_emoji():
     print(emoji.emojize(":notebook: Generating new README.md..."))
+
+def docs_emoji():
+    print(emoji.emojize(":notebook: Generating code comments..."))
 
 def ask_emoji():
     print(emoji.emojize(":thinking_face: Working on your question..."))
@@ -175,6 +179,62 @@ def read_file_contents(path_to_file):
             return contents
         else:
             return ""
+
+def walk_repo_and_return_contents(repo_path):
+    """
+    Walk through a repository and return contents of source code files.
+
+    Args:
+        repo_path (str): Path to the repository.
+
+    Yields:
+        tuple: A tuple containing the file path and its contents for source code files.
+    """
+    # List of file extensions corresponding to source code files
+    source_code_extensions = sum(FILE_EXTENSIONS.values(), [])
+    for root, _, files in os.walk(repo_path):
+        
+        print("Comments will be generated for the following files:\n")
+        for file in files:
+            file_path = os.path.join(root, file)
+            print(f'{file_path}')
+
+        for file in files:
+            file_path = os.path.join(root, file)
+            _, extension = os.path.splitext(file)
+
+            # Check if the file extension matches a source code type
+            if extension.lower() in source_code_extensions:
+                try:
+                    with open(file_path, "r", errors="ignore") as file:
+                        contents = file.read()
+                        yield file_path, contents
+                except Exception as e:
+                    print(f"Error reading file {file_path}: {e}")
+
+def return_file_contents(file_path):
+    """
+    Return the contents of a file.
+
+    Args:
+        filepath (str): Path to the file.
+
+    Yields:
+        tuple: A tuple containing the file path and its contents for source code files.
+    """
+    # List of file extensions corresponding to source code files
+    source_code_extensions = sum(FILE_EXTENSIONS.values(), [])
+    basename = os.path.basename(file_path)
+    _, extension = os.path.splitext(basename)
+
+    # Check if the file extension matches a source code type
+    if extension.lower() in source_code_extensions:
+        try:
+            with open(file_path, "r", errors="ignore") as file:
+                contents = file.read()
+                return file_path, contents
+        except Exception as e:
+            print(f"Error reading file {file_path}: {e}")
 
 
 def conform_to_pep8(filename):
@@ -738,12 +798,154 @@ def rewrite_readme_mistral(readme):
     return new_readme
 
 
+def write_comments(provider, source):
+    docs_emoji()
+
+    if provider == "openai":
+        res = write_comments_openai(source)
+    elif provider == "gemini":
+        res = write_comments_gemini(source)
+    elif provider == "ogre":
+        res = write_comments_ogre(source)
+    return res
+
+
+def write_comments_openai(source):
+    model = os.getenv("OPENAI_MODEL", OPENAI_MODEL)
+    prompt = os.getenv("WRITE_COMMENTS_PROMPT", WRITE_COMMENTS_PROMPT)
+    new_source = ""
+    if "OPENAI_API_KEY" not in os.environ:
+        raise EnvironmentError("OPENAI_API_KEY environment variable not defined")
+    try:
+        client = OpenAI()
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": source},
+            ],
+        )
+        # print(completion)
+        new_source = completion.choices[0].message.content
+    except Exception as e:
+        print(e)
+    return new_source
+
+
+def write_comments_gemini(source):
+    model = os.getenv("GEMINI_MODEL", GEMINI_MODEL)
+    prompt = os.getenv("WRITE_COMMENTS_PROMPT", WRITE_COMMENTS_PROMPT)
+    full_prompt = f"{prompt}\n---\n{source}"
+    # print(f"{model=} {full_prompt=}")
+    new_source = ""
+    if "GEMINI_API_KEY" not in os.environ:
+        raise EnvironmentError("GEMINI_API_KEY environment variable not defined")
+    try:
+        client = googleai.GenerativeModel(model)
+        response = client.generate_content(full_prompt, request_options={"timeout": TIMEOUT_API_REQUEST})
+        new_source = response.text
+    except Exception as e:
+        print(e)
+    return new_source
+
+
+def write_comments_ogre(source):
+
+    model = os.getenv("OGRE_MODEL", OGRE_MODEL)
+    prompt = os.getenv("WRITE_COMMENTS_PROMPT", WRITE_COMMENTS_PROMPT)
+    api_server = os.getenv("OGRE_API_SERVER", OGRE_API_SERVER)
+    ogre_token = os.getenv("OGRE_TOKEN", OGRE_TOKEN)
+    
+    full_prompt = prompt + " " + source
+
+    # Define headers
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    # Define the data to be sent in JSON format
+    data = {
+        "model": model,
+        "prompt": prompt + " " + source,
+        "ogre_token": ogre_token,
+    }
+    new_source = ""
+    #try:
+    # Send the POST request
+    response = requests.post(api_server, headers=headers, json=data)
+
+    # Process the response
+    response_json = response.json()
+    new_source = response_json.get('data')
+    #except Exception as e:
+        #print(e)
+    return new_source
+
 def save_readme(readme, ogre_dir_path):
     readme_fullpath = os.path.join(ogre_dir_path, "README.md")
     with open(readme_fullpath, "w") as f:
         f.write(readme)
     return readme_fullpath
 
+def save_source(source, file_path):
+    with open(file_path, "w") as f:
+        f.write(source)
+    return file_path
+
+def remove_first_last_tags(file_path):
+    """
+    Removes the first and last Markdown code block tags from a file.
+
+    Args:
+        file_path (str): Path to the file to be processed.
+    """
+    with open(file_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    
+    # Remove the first and last lines if they are Markdown tags
+    if lines and lines[0].strip().startswith("```"):
+        lines.pop(0)  # Remove the first line
+    if lines and lines[-1].strip() == "```":
+        lines.pop()  # Remove the last line
+    
+    # Write the cleaned lines back to the file
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.writelines(lines)
+    print(f"Processed file: {file_path}")
+
+
+#def remove_markdown_code_tags(file_path):
+#    """
+#    Removes markdown tags like ```Python and ``` from a file.
+#
+#    Args:
+#        file_path (str or Path): Path to the file to be processed.
+#    """
+#    file_path = Path(file_path)  # Ensure file_path is a Path object
+#
+#    # Read the file content
+#    with file_path.open("r", encoding="utf-8") as f:
+#        lines = f.readlines()
+#
+#    # Remove the tags
+#    in_code_block = False
+#    cleaned_lines = []
+#    for line in lines:
+#        # Check for the start or end of a code block
+#        if line.strip() in [f"```{i}" for i in FILE_EXTENSIONS.keys()]:
+#            in_code_block = True
+#            continue  # Skip this line
+#        elif line.strip() == "```":
+#            in_code_block = False
+#            continue  # Skip this line
+#
+#        # Add the line to cleaned content if it's not part of the tags
+#        cleaned_lines.append(line)
+#
+#    # Write the cleaned content back to the file (or another file)
+#    with file_path.open("w", encoding="utf-8") as f:
+#        f.writelines(cleaned_lines)
+#    print(f"Processed file: {file_path}")
 
 def build_docker_image(
     dockerfile, image_name, host_platform=None, verbose=False, cache=False
