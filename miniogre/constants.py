@@ -350,9 +350,9 @@ Do not include markdown highlighting tags like ```python at the begining and end
 
 WRITE_COMMENTS_PROMPT = """Generate comments and, when appropriate, docstrings for the code below. 
 Depending on the programming language, the comments should follow its standard practices.
-The comments should be written such that a new developer can have a good understanding of the code by just glancing it.
+The comments should be written such that a new developer can have a good understanding of the code by just glancing at it.
 Do not include markdown highlighting tags like ```python at the begining and ending of the code.
-Do not modify the code.
+Do not modify, delete, improve the code. Only add comments.
 """
 
 # GROQ_MODEL = "mixtral-8x7b-32768"
