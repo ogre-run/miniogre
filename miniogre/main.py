@@ -76,10 +76,9 @@ def readme(provider: str = "ogre"):
     return 0
 
 @app.command()
-def docs(provider: str = "ogre",
-         filename: str = "None_filename"):
+def docs(provider: str = "ogre"):
     """
-    Generate and/or update comments in the source code.
+    Generate and/or update comments in the entire source code.
     """
 
     display_figlet()
@@ -89,11 +88,6 @@ def docs(provider: str = "ogre",
         os.path.join(project_path, os.getenv("OGRE_DIR", OGRE_DIR))
     )
 
-    #context_contents = run_gptify(os.getcwd())
-    #num_tokens = count_tokens(context_contents)
-    #print("Total number of tokens: {}".format(num_tokens))
-    #new_readme = rewrite_readme(provider, context_contents)
-    
     # Go through all files
     for file_path, contents in walk_repo_and_return_contents(project_path):
         print(f'> Create comments for {file_path}')
@@ -102,6 +96,31 @@ def docs(provider: str = "ogre",
 
         remove_first_last_tags(source_path)
     
+    end_emoji()
+
+    return 0
+
+@app.command()
+def comment(provider: str = "ogre",
+            filepath: str = "./main.py"):
+    """
+    Generate and/or update comments in an input file.
+    """
+
+    display_figlet()
+    starting_emoji()
+
+    ogre_dir_path = config_ogre_dir(
+        os.path.join(project_path, os.getenv("OGRE_DIR", OGRE_DIR))
+    )
+
+    # Go through all files
+    file_path, contents = return_file_contents(filepath)
+    print(f'> Create comments for {file_path}')
+    new_contents = write_comments(provider, contents)
+    source_path = save_source(new_contents, file_path)
+
+    remove_first_last_tags(source_path)
     end_emoji()
 
     return 0

@@ -212,6 +212,30 @@ def walk_repo_and_return_contents(repo_path):
                 except Exception as e:
                     print(f"Error reading file {file_path}: {e}")
 
+def return_file_contents(file_path):
+    """
+    Return the contents of a file.
+
+    Args:
+        filepath (str): Path to the file.
+
+    Yields:
+        tuple: A tuple containing the file path and its contents for source code files.
+    """
+    # List of file extensions corresponding to source code files
+    source_code_extensions = sum(FILE_EXTENSIONS.values(), [])
+    basename = os.path.basename(file_path)
+    _, extension = os.path.splitext(basename)
+
+    # Check if the file extension matches a source code type
+    if extension.lower() in source_code_extensions:
+        try:
+            with open(file_path, "r", errors="ignore") as file:
+                contents = file.read()
+                return file_path, contents
+        except Exception as e:
+            print(f"Error reading file {file_path}: {e}")
+
 
 def conform_to_pep8(filename):
 
