@@ -224,9 +224,9 @@ def config_dockerfile(
                 f.close()
         return os.path.isfile("{}/Dockerfile".format(ogre_dir))
 
-def config_baseimage(framework = None):
+def config_baseimage(framework = None,
+                     platform_machine = None):
 
-    platform_machine = "{}".format(platform.machine())
     if framework == None:
         baseimage = (os.getenv("OGRE_BASEIMAGE", OGRE_BASEIMAGE)).format(platform_machine)
     else:

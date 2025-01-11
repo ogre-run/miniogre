@@ -44,7 +44,7 @@ RUN mv ./bashrc /etc/bash.bashrc && \
     rm Dockerfile
 # Switch to the custom user
 # USER user
-RUN git clone https://github.com/karpathy/nanoGPT.git examples/nanoGPT
+# RUN git clone https://github.com/karpathy/nanoGPT.git examples/nanoGPT
 CMD ["ttyd", "-W", "-a", "-p", "8008", "./ttyd_entrypoint.sh"]
 """
 

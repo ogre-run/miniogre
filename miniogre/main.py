@@ -1,4 +1,5 @@
 import importlib.metadata
+import platform
 import os
 
 import typer
@@ -156,7 +157,7 @@ def run(
     no_container: bool = False,
     verbose: bool = False,
     cache: bool = False,
-    host_platform: str = None,
+    host_platform: str = "auto",
     with_readme: bool = False,
 ):
     """
@@ -197,8 +198,14 @@ def run(
         # final_requirements = clean_requirements(provider, local_requirements)
         requirements_fullpath = save_requirements(final_requirements, ogre_dir_path)
     config_bashrc(project_path, ogre_dir_path, None, None, None)
+
+    if host_platform == 'auto':
+        platform_machine = "{}".format(platform.machine())
+    else:
+        platform_machine = host_platform
+
     if baseimage == "auto":
-        baseimage_name = config_baseimage(lang_frame['framework'])
+        baseimage_name = config_baseimage(lang_frame['framework'], platform_machine)
     else:
         baseimage_name = baseimage
     config_dockerfile(project_path, project_name, lang_frame['framework'],
@@ -209,7 +216,7 @@ def run(
         build_docker_image(
             os.path.join(ogre_dir_path, "Dockerfile"),
             project_name,
-            host_platform,
+            platform_machine,
             verbose,
             cache,
         )
@@ -239,7 +246,7 @@ def build_ogre_image(
     image_name: str = "baseimage",
     verbose: bool = False,
     cache: bool = False,
-    host_platform: str = None,
+    host_platform: str = "auto",
 ):
     """
     Build miniogre baseimage
@@ -248,8 +255,15 @@ def build_ogre_image(
     display_figlet()
     starting_emoji()
 
+    if host_platform == "auto":
+        platform_machine = "{}".format(platform.machine())
+    else:
+        platform_machine = host_platform
+
     if baseimage == "auto":
-        baseimage_name = config_baseimage()
+        baseimage_name = config_baseimage(None, platform_machine)
+    else:
+        baseimage_name = baseimage
 
     ogre_dir_path = config_ogre_dir(
         os.path.join(project_path, os.getenv("OGRE_DIR", OGRE_DIR))
@@ -258,7 +272,7 @@ def build_ogre_image(
     config_bashrc_baseimage(ogre_dir_path)
     config_ttyd_entrypoint(ogre_dir_path)
     secure_passphrase = config_dockerfile(
-        project_path, "ogre", ogre_dir_path, baseimage_name, dry=False, base=True
+        project_path, "ogre", None, ogre_dir_path, baseimage_name, dry=False, base=True
     )
     build_docker_image(
         os.path.join(ogre_dir_path, "Dockerfile"),

@@ -948,15 +948,15 @@ def remove_first_last_tags(file_path):
 #    print(f"Processed file: {file_path}")
 
 def build_docker_image(
-    dockerfile, image_name, host_platform=None, verbose=False, cache=False
+    dockerfile, image_name, host_platform="auto", verbose=False, cache=False
 ):
     # TODO: Generate unique tag to avoid name clashing among different users
     # tag = uuid.uuid4().hex
 
-    if host_platform == None:
+    if host_platform == "auto":
         platform_name = "linux/{}".format(platform.machine())
     else:
-        platform_name = host_platform
+        platform_name = "linux/{}".format(host_platform)
     image_name = "miniogre/{}:latest".format(image_name.lower())
 
     build_emoji()
