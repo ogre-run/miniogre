@@ -258,5 +258,5 @@ def config_requirements(project_dir, ogre_dir, force=False):
     else:
         print("No requirements file found. miniogre will create one for you.")
         res = True
-
+    
     return res

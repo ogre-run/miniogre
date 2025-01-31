@@ -225,7 +225,8 @@ def run(
 
 
 @app.command()
-def spinup(port_map: str = "8001:8001"):
+def spinup(port_map: str = "8001:8001",
+           device: str = "cpu"):
     """
     Spin up container if image was previously built with `run`
     """
@@ -235,8 +236,11 @@ def spinup(port_map: str = "8001:8001"):
 
     project_name = os.path.basename(project_path)
     lang_frame = detect_language_and_framework(project_path)
-    spin_up_container(project_name, project_path, port_map, lang_frame['framework'])
-
+    spin_up_container(project_name, 
+                      project_path, 
+                      port_map, 
+                      lang_frame['framework'], 
+                      device)
     end_emoji()
 
 

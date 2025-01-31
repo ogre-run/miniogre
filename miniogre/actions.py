@@ -997,7 +997,7 @@ def build_docker_image(
     return out
 
 
-def spin_up_container(image_name, project_path, port_map, framework):
+def spin_up_container(image_name, project_path, port_map, framework, device):
     # spin up container
     spinup_emoji()
 
@@ -1005,8 +1005,12 @@ def spin_up_container(image_name, project_path, port_map, framework):
     container_name = "miniogre-{}".format(image_name.lower())
     image_name = "miniogre/{}:{}".format(image_name.lower(), "latest")
     docker_cmd = FRAMEWORK_DOCKER_CMD[framework]
-    spin_up_cmd = "docker run -it --rm -v {}:/opt/{} -p {} --name {} {} {}".format(
-        project_path, project_name, port_map, container_name, image_name, docker_cmd
+    if device == "gpu":
+        device_cmd = "--gpus all"
+    else:
+        device_cmd = "" 
+    spin_up_cmd = "docker run -it --rm {} -v {}:/opt/{} -p {} --name {} {} {}".format(
+        device_cmd, project_path, project_name, port_map, container_name, image_name, docker_cmd
     )
 
     print("   spin up command = {}".format(spin_up_cmd))

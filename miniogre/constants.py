@@ -30,7 +30,7 @@ RUN chmod a+rwx /etc/bash.bashrc
 
 DOCKERFILE_BASEIMAGE = """
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN apt-get update && apt-get install -y ttyd sudo build-essential cmake wget htop
+RUN apt-get update && apt-get install -y ttyd sudo build-essential cmake wget htop python3-dev python3-pip
 RUN pip install miniogre
 # Create a custom user with UID 1234 and GID 1234. Password is set during build time.
 RUN groupadd -g 1234 ogre && \
