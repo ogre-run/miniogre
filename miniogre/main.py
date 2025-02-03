@@ -159,7 +159,7 @@ def run(
     cache: bool = False,
     host_platform: str = "auto",
     with_readme: bool = False,
-):
+    device: str = "cpu"):
     """
     Run full miniogre pipeline
     """
@@ -220,7 +220,11 @@ def run(
             verbose,
             cache,
         )
-        spin_up_container(project_name, project_path, port_map, lang_frame['framework'])
+        spin_up_container(project_name, 
+                          project_path, 
+                          port_map, 
+                          lang_frame['framework'], 
+                          device)
     end_emoji()
 
 
