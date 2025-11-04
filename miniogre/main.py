@@ -2,33 +2,37 @@ import importlib.metadata
 import platform
 import os
 
-import typer
+import click
 from dotenv import load_dotenv
 from openai import OpenAI
 
 from .actions import *
 from .config import *
 
-app = typer.Typer()
 load_dotenv()
 
 project_path = os.getcwd()
 
 
-@app.command()
+@click.group()
+def cli():
+    """miniogre - from source code to reproducible environment, in seconds."""
+    pass
+
+
+@cli.command()
 def version():
-    """
-    Display version
-    """
+    """Display version"""
     version_string = importlib.metadata.version("miniogre")
     print("{}".format(version_string))
 
     return 0
 
 
-@app.command()
-def ask(question: str = "",
-        provider: str = "ogre"):
+@cli.command()
+@click.option('--question', default="", help="Question to ask")
+@click.option('--provider', default="ogre", help="Provider to use")
+def ask(question, provider):
     """
     Ask question related to the project
     """
@@ -54,8 +58,9 @@ def ask(question: str = "",
 
     return 0
 
-@app.command()
-def readme(provider: str = "ogre"):
+@cli.command()
+@click.option('--provider', default="ogre", help="Provider to use")
+def readme(provider):
     """
     Generate README file for the project
     """
@@ -76,8 +81,9 @@ def readme(provider: str = "ogre"):
 
     return 0
 
-@app.command()
-def docs(provider: str = "ogre"):
+@cli.command()
+@click.option('--provider', default="ogre", help="Provider to use")
+def docs(provider):
     """
     Generate and/or update comments in the entire source code.
     """
@@ -96,14 +102,15 @@ def docs(provider: str = "ogre"):
         source_path = save_source(new_contents, file_path)
 
         remove_first_last_tags(source_path)
-    
+
     end_emoji()
 
     return 0
 
-@app.command()
-def comment(provider: str = "ogre",
-            filepath: str = "./main.py"):
+@cli.command()
+@click.option('--provider', default="ogre", help="Provider to use")
+@click.option('--filepath', default="./main.py", help="File path to comment")
+def comment(provider, filepath):
     """
     Generate and/or update comments in an input file.
     """
@@ -127,8 +134,10 @@ def comment(provider: str = "ogre",
     return 0
 
 
-@app.command()
-def eval(provider: str = "ogre", verbose: bool = False):
+@cli.command('eval')
+@click.option('--provider', default="ogre", help="Provider to use")
+@click.option('--verbose', is_flag=True, help="Verbose output")
+def eval_cmd(provider, verbose):
     """
     [Beta] Determine the reproducibility score of the repository
     """
@@ -146,20 +155,20 @@ def eval(provider: str = "ogre", verbose: bool = False):
     return 0
 
 
-@app.command()
-def run(
-    provider: str = "ogre",
-    baseimage: str = "auto",
-    port_map: str = "8001:8001",
-    dry: bool = False,
-    force_requirements_generation: bool = True,
-    sbom_format: str = "pip-licenses",
-    no_container: bool = False,
-    verbose: bool = False,
-    cache: bool = False,
-    host_platform: str = "auto",
-    with_readme: bool = False,
-    device: str = "cpu"):
+@cli.command()
+@click.option('--provider', default="ogre", help="Provider to use")
+@click.option('--baseimage', default="auto", help="Base image to use")
+@click.option('--port-map', default="8001:8001", help="Port mapping")
+@click.option('--dry', is_flag=True, help="Dry run")
+@click.option('--force-requirements-generation', is_flag=True, default=True, help="Force requirements generation")
+@click.option('--sbom-format', default="pip-licenses", help="SBOM format")
+@click.option('--no-container', is_flag=True, help="Don't create container")
+@click.option('--verbose', is_flag=True, help="Verbose output")
+@click.option('--cache', is_flag=True, help="Use cache")
+@click.option('--host-platform', default="auto", help="Host platform")
+@click.option('--with-readme', is_flag=True, help="Generate README")
+@click.option('--device', default="cpu", help="Device to use (cpu/gpu)")
+def run(provider, baseimage, port_map, dry, force_requirements_generation, sbom_format, no_container, verbose, cache, host_platform, with_readme, device):
     """
     Run full miniogre pipeline
     """
@@ -228,9 +237,10 @@ def run(
     end_emoji()
 
 
-@app.command()
-def spinup(port_map: str = "8001:8001",
-           device: str = "cpu"):
+@cli.command()
+@click.option('--port-map', default="8001:8001", help="Port mapping")
+@click.option('--device', default="cpu", help="Device to use (cpu/gpu)")
+def spinup(port_map, device):
     """
     Spin up container if image was previously built with `run`
     """
@@ -248,14 +258,13 @@ def spinup(port_map: str = "8001:8001",
     end_emoji()
 
 
-@app.command()
-def build_ogre_image(
-    baseimage: str = "auto",
-    image_name: str = "baseimage",
-    verbose: bool = False,
-    cache: bool = False,
-    host_platform: str = "auto",
-):
+@cli.command()
+@click.option('--baseimage', default="auto", help="Base image to use")
+@click.option('--image-name', default="baseimage", help="Image name")
+@click.option('--verbose', is_flag=True, help="Verbose output")
+@click.option('--cache', is_flag=True, help="Use cache")
+@click.option('--host-platform', default="auto", help="Host platform")
+def build_ogre_image(baseimage, image_name, verbose, cache, host_platform):
     """
     Build miniogre baseimage
     """
@@ -295,10 +304,52 @@ def build_ogre_image(
     end_emoji()
 
 
-@app.command()
-def cloud(
-    proxy: str = "https://fileserver.ogrerun.xyz",
-):
+@cli.command()
+@click.option('--init', is_flag=True, help="Download CHISEL knowledge reference file")
+@click.option('--new', help="Create new project folder and download CHISEL knowledge reference file")
+def chisel(init, new):
+    """
+    Chisel knowledge reference management
+    """
+    if init or new:
+        import requests
+
+        display_figlet()
+        starting_emoji()
+
+        url = "https://gist.githubusercontent.com/wilderlopes/bc8d95274dae7765c2121a8b921cd771/raw/2d2f640449e80b1af370a69df6cd44056f1b8fed/CHISEL_KNOWLEDGE_REFERENCE.md"
+
+        # Create folder if --new option is used
+        if new:
+            try:
+                os.makedirs(new, exist_ok=True)
+                os.chdir(new)
+                print(f"📁 Created and entered directory: {new}")
+            except OSError as e:
+                print(f"❌ Error creating directory: {e}")
+                end_emoji()
+                return
+
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+
+            with open("CHISEL_KNOWLEDGE_REFERENCE.md", "w") as f:
+                f.write(response.text)
+
+            print("✅ CHISEL_KNOWLEDGE_REFERENCE.md downloaded successfully!")
+
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Error downloading file: {e}")
+
+        end_emoji()
+    else:
+        print("Use --init to download the CHISEL knowledge reference file or --new <project-name> to create a new project")
+
+
+@cli.command()
+@click.option('--proxy', default="https://fileserver.ogrerun.xyz", help="Proxy server URL")
+def cloud(proxy):
     """
     Move local project folder to an enviroment in another computer.
     Ideally, that computer has more computational power and you can continously run
@@ -325,4 +376,4 @@ def cloud(
     delete_tarfile(filename)
 
 if __name__ == "__main__":
-    app()
+    cli()
