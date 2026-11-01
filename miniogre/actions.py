@@ -119,9 +119,11 @@ def ipynb_to_py(project_path, verbose=False):
 
     for filename in pattern_ipynb:
         # subprocess to convert notebook to python
-        convert_cmd = 'jupyter nbconvert --to python "{}"'.format(filename)
+        convert_cmd = [
+            'jupyter', 'nbconvert', '--to', 'python', filename,
+        ]
         p = subprocess.Popen(
-            convert_cmd, stdout=subprocess.PIPE, stderr=stderr, shell=True
+            convert_cmd, stdout=subprocess.PIPE, stderr=stderr
         )
         (out, err) = p.communicate()
         p_status = p.wait()
@@ -239,10 +241,10 @@ def return_file_contents(file_path):
 
 def conform_to_pep8(filename):
 
-    pep8_cmd = "autopep8 --in-place --aggressive {}".format(filename)
+    pep8_cmd = ['autopep8', '--in-place', '--aggressive', filename]
 
     p = subprocess.Popen(
-        pep8_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        pep8_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     (out, err) = p.communicate()
     p_status = p.wait()
@@ -1097,9 +1099,9 @@ def run_gptify(repo_path):
     if not os.path.exists("ogre_dir"):
         os.mkdir("ogre_dir")
 
-    gptrepo_cmd = 'gptify {} --output "ogre_dir/gptify_output.txt"'.format(repo_path)
+    gptrepo_cmd = ['gptify', repo_path, '--output', 'ogre_dir/gptify_output.txt']
     p = subprocess.Popen(
-        gptrepo_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        gptrepo_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     (out, err) = p.communicate()
     p_status = p.wait()
